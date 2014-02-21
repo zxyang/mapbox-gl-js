@@ -78,6 +78,8 @@ Bucket.prototype.end = function() {
     indices.glyphVertexIndexEnd = geometry.glyphVertex.index;
 
     indices.pointVertexIndexEnd = geometry.pointVertex.index;
+
+    this.featureIndices.push(this.getIndices());
 };
 
 
@@ -126,6 +128,13 @@ Bucket.prototype.addText = function(lines, faces, shaping) {
     for (var i = 0; i < lines.length; i++) {
         this.placement.addFeature(lines[i], this.info, faces, shaping);
     }
+};
+
+Bucket.prototype.addFeatureAt = function(index) {
+    var vertex = this.geometry.fillBuffers[index.fillBufferIndex].vertex;
+    vertex.startUpdate(index.fillVertexIndex);
+    this.addFeature.apply(this, Array.prototype.slice.call(arguments, 1));
+    vertex.endUpdate();
 };
 
 Bucket.prototype.clear = function(start, end) {

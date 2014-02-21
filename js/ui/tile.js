@@ -1,10 +1,6 @@
 'use strict';
 
-var LineVertexBuffer = require('../geometry/linevertexbuffer.js');
-var FillVertexBuffer = require('../geometry/fillvertexbuffer.js');
-var FillElementsBuffer = require('../geometry/fillelementsbuffer.js');
-var GlyphVertexBuffer = require('../geometry/glyphvertexbuffer.js');
-var PointVertexBuffer = require('../geometry/pointvertexbuffer.js');
+var Geometry = require('../geometry/geometry.js');
 var Bucket = require('../geometry/bucket.js');
 
 var glmatrix = require('../lib/glmatrix.js');
@@ -111,13 +107,7 @@ Tile.prototype.onTileLoad = function(data) {
     this.geometry = data.geometry;
     this.stats = data.stats;
 
-    this.geometry.glyphVertex = new GlyphVertexBuffer(this.geometry.glyphVertex);
-    this.geometry.pointVertex = new PointVertexBuffer(this.geometry.pointVertex);
-    this.geometry.lineVertex = new LineVertexBuffer(this.geometry.lineVertex);
-    this.geometry.fillBuffers.forEach(function(d) {
-        d.vertex = new FillVertexBuffer(d.vertex);
-        d.elements = new FillElementsBuffer(d.elements);
-    });
+    this.geometry = new Geometry(this.geometry);
 
     this.buckets = {};
     for (var b in data.buckets) {
@@ -220,13 +210,25 @@ Tile.prototype.abort = function() {
     this.map.dispatcher.send('abort tile', this.id, null, this.workerID);
 };
 
+Tile.prototype.addFeature = function(feature, bucket_name) {
+    var bucket = this.buckets[bucket_name];
+    if (!bucket) throw('missing bucket');
+
+    if (bucket_name === feature._bucket) {
+        var featureIndices = bucket.featureIndices;
+        var start = featureIndices[feature.index];
+        bucket.addFeatureAt(start, feature._geometry);
+    } else {
+        bucket.addFeature(feature._geometry);
+    }
+};
+
 Tile.prototype.removeFeature = function(feature) {
     var bucket = this.buckets[feature._bucket];
     if (!bucket) throw('missing bucket');
     var featureIndices = bucket.featureIndices;
     var start = featureIndices[feature.index];
     var end = featureIndices[feature.index + 1];
-    if (!end) throw('implement it');
 
     bucket.clear(start, end);
 };

@@ -90,6 +90,15 @@ util.extend(Source.prototype, {
         callback(null, []);
     },
 
+    addFeature: function(feature, bucket_name) {
+        if (feature._source !== this.id) throw('feature not from this datasource');
+        var tileID = feature._tile;
+
+        if (this.tiles[tileID]) {
+            this.tiles[tileID].addFeature(feature, bucket_name);
+        }
+    },
+
     removeFeature: function(feature) {
         if (feature._source !== this.id) throw('feature not from this datasource');
         var tileID = feature._tile;

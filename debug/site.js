@@ -25,17 +25,32 @@ var map = new llmr.Map({
     hash: true
 });
 
+    var current = {};
 document.body.onmousemove = function(e) {
+
     map.featuresAt(e.clientX, e.clientY, {
+        geometry: true,
         radius: 1
     }, function(err, features) {
         features = features.filter(function(f) {
             return f._bucket === 'building';
         });
+        var newf = {};
         features.forEach(function(f) {
-            map.sources['mapbox streets'].removeFeature(f);
-            map.update();
+            if (!current[f.index]) {
+                map.sources['mapbox streets'].removeFeature(f);
+            }
+            //console.log(f);
+            current[f.index] = f;
+            newf[f.index] = true;
         });
+        for (var f in current) {
+            if (!newf[f]) {
+                map.sources['mapbox streets'].addFeature(current[f], current[f]._bucket);
+                delete current[f];
+            }
+        }
+        map.update();
     });
 
 };

@@ -10,17 +10,35 @@ var PointVertexBuffer = require('./pointvertexbuffer.js');
 // Construct a geometry that contains a vertex and fill buffer and can be drawn using `addLine`
 module.exports = Geometry;
 
-function Geometry() {
+function Geometry(geometry) {
 
-    this.lineVertex = new LineVertexBuffer();
-    this.glyphVertex = new GlyphVertexBuffer();
-    this.pointVertex = new PointVertexBuffer();
+    if (!geometry) {
+        this.lineVertex = new LineVertexBuffer();
+        this.glyphVertex = new GlyphVertexBuffer();
+        this.pointVertex = new PointVertexBuffer();
 
-    this.fillBuffers = [];
-    this.fillBufferIndex = -1;
-    this.fillVertex = null;
-    this.fillElements = null;
-    this.swapFillBuffers(0);
+        this.fillBuffers = [];
+        this.fillBufferIndex = -1;
+        this.fillVertex = null;
+        this.fillElements = null;
+        this.swapFillBuffers(0);
+
+    // recreate geometry object after transferring from worker
+    } else {
+        this.lineVertex = new LineVertexBuffer(geometry.lineVertex);
+        this.glyphVertex = new GlyphVertexBuffer(geometry.glyphVertex);
+        this.pointVertex = new PointVertexBuffer(geometry.pointVertex);
+
+        this.fillBuffers = geometry.fillBuffers;
+        this.fillBuffers.forEach(function(d) {
+            d.vertex = new FillVertexBuffer(d.vertex);
+            d.elements = new FillElementsBuffer(d.elements);
+        });
+
+        this.fillBufferIndex = geometry.fillBufferIndex;
+        this.fillVertex = this.fillBuffers[this.fillBufferIndex].vertex;
+        this.fillElements = this.fillBuffers[this.fillBufferIndex].elements;
+    }
 }
 
 // Collects all buffers to mark them as transferable object.
