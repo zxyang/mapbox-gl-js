@@ -55,7 +55,7 @@ function drawFill(gl, painter, bucket, layerStyle, stats, params, imageSprite, b
                 elements.bind(gl);
 
                 begin = buffer == bucket.indices.fillBufferIndex ? bucket.indices.fillElementsIndex : 0;
-                end = buffer == bucket.indices.fillBufferIndexEnd ? bucket.indices.fillElementsIndexEnd : elements.index;
+                end = buffer == bucket.indices.fillBufferIndexEnd ? bucket.indices.fillElementsIndexEnd : elements.glBufferSize / elements.itemSize;
 
                 gl.vertexAttribPointer(painter.fillShader.a_pos, vertex.itemSize / 2, gl.SHORT, false, 0, 0);
                 gl.drawElements(gl.TRIANGLES, (end - begin) * 3, gl.UNSIGNED_SHORT, begin * 6);
@@ -104,7 +104,8 @@ function drawFill(gl, painter, bucket, layerStyle, stats, params, imageSprite, b
                 vertex.bind(gl);
 
                 begin = buffer == bucket.indices.fillBufferIndex ? bucket.indices.fillVertexIndex : 0;
-                end = buffer == bucket.indices.fillBufferIndexEnd ? bucket.indices.fillVertexIndexEnd : vertex.index;
+                end = buffer == bucket.indices.fillBufferIndexEnd ? bucket.indices.fillVertexIndexEnd : vertex.glBufferSize / vertex.itemSize;
+
                 gl.vertexAttribPointer(painter.outlineShader.a_pos, 2, gl.SHORT, false, 0, 0);
                 gl.drawArrays(gl.LINE_STRIP, begin, (end - begin));
 

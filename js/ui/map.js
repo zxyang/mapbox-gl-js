@@ -150,12 +150,19 @@ util.extend(Map.prototype, {
     featuresAt: function(x, y, params, callback) {
         var features = [];
         var error = null;
-        util.asyncEach(Object.values(this.sources), function(source, callback) {
-            source.featuresAt(x, y, params, function(err, result) {
-                if (result) features = features.concat(result);
+        var sources = this.sources;
+        util.asyncEach(Object.keys(sources), function(id, callback) {
+            sources[id].featuresAt(x, y, params, function(err, result) {
+                if (result) features = features.concat(result.map(addSource));
                 if (err) error = err;
                 callback();
             });
+
+            function addSource(feature) {
+                feature._source = id;
+                return feature;
+            }
+
         }, function() {
             callback(error, features);
         });

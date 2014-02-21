@@ -120,8 +120,9 @@ WorkerTile.prototype.parseBucket = function(bucket_name, features, info, faces, 
     } else {
         for (var i = 0; i < features.length; i++) {
             var feature = features[i];
-            bucket.addFeature(feature.loadGeometry());
 
+            feature.index = bucket.index;
+            bucket.addFeature(feature.loadGeometry());
             this.featureTree.insert(feature.bbox(), bucket_name, feature);
         }
     }

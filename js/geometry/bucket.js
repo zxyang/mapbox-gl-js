@@ -2,12 +2,14 @@
 
 module.exports = Bucket;
 
-function Bucket(info, geometry, placement, indices) {
+function Bucket(info, geometry, placement, indices, featureIndices) {
 
     this.info = info;
     this.geometry = geometry;
     this.placement = placement;
     this.indices = indices; // only used after transfer from worker
+    this.featureIndices = featureIndices || []; // after transfer
+    this.index = 0;
 
     if (info.type === 'text') {
         this.addFeature = this.addText;
@@ -43,9 +45,13 @@ function Bucket(info, geometry, placement, indices) {
 }
 
 Bucket.prototype.start = function() {
+    this.indices = this.getIndices();
+};
+
+Bucket.prototype.getIndices = function() {
     var geometry = this.geometry;
 
-    this.indices = {
+    return {
         lineVertexIndex: geometry.lineVertex.index,
 
         fillBufferIndex: geometry.fillBufferIndex,
@@ -77,7 +83,8 @@ Bucket.prototype.end = function() {
 
 Bucket.prototype.toJSON = function() {
     return {
-        indices: this.indices
+        indices: this.indices,
+        featureIndices: this.featureIndices
     };
 };
 
@@ -95,6 +102,15 @@ Bucket.prototype.addLine = function(lines) {
 };
 
 Bucket.prototype.addFill = function(lines) {
+
+    var geometry = this.geometry;
+    this.featureIndices[this.index] = {
+        fillBufferIndex: geometry.fillBufferIndex,
+        fillVertexIndex: geometry.fillVertex.index,
+        fillElementsIndex: geometry.fillElements.index
+    };
+    this.index++;
+
     for (var i = 0; i < lines.length; i++) {
         this.geometry.addFill(lines[i]);
     }
@@ -110,6 +126,19 @@ Bucket.prototype.addText = function(lines, faces, shaping) {
     for (var i = 0; i < lines.length; i++) {
         this.placement.addFeature(lines[i], this.info, faces, shaping);
     }
+};
+
+Bucket.prototype.clear = function(start, end) {
+    // currently only works for fills
+    var vertex = this.geometry.fillBuffers[start.fillBufferIndex].vertex;
+
+    vertex.startUpdate(start.fillVertexIndex);
+
+    var numVertices = end.fillVertexIndex - start.fillVertexIndex;
+    for (var i = 0; i < numVertices; i++) {
+        vertex.addDegenerate();
+    }
+    vertex.endUpdate();
 };
 
 // Builds a function body from the JSON specification. Allows specifying other compare operations.

@@ -16,6 +16,8 @@ function Buffer(buffer) {
         this.array = buffer.array;
         this.pos = buffer.pos;
     }
+
+    this.positions = [];
 }
 
 Buffer.prototype = {
@@ -43,12 +45,41 @@ Buffer.prototype = {
             this.buffer = gl.createBuffer();
             gl.bindBuffer(type, this.buffer);
             gl.bufferData(type, new DataView(this.array, 0, this.pos), gl.STATIC_DRAW);
+            this.glBufferSize = this.pos;
+            this.positions = [];
 
             // dump array buffer once it's bound to gl
-            this.array = null;
+            this.array = new ArrayBuffer(this.defaultLength);
+            this.length = this.defaultLength;
+            this.pos = 0;
+            this.setupViews();
+
         } else {
             gl.bindBuffer(type, this.buffer);
+
+            // If the buffer has been updated since it was last bound, upload those changes
+            if (this.positions.length) {
+                // todo merge before uploading where possible
+                for (var i = 0; i < this.positions.length; i++) {
+                    var p = this.positions[i];
+                    gl.bufferSubData(type, p.pos, new DataView(this.array, p.start, p.end - p.start));
+                }
+                this.positions = [];
+            }
         }
+    },
+
+    startUpdate: function(index) {
+        this._add = this.add;
+        if (this.buffer) this.positions.push({ pos: index * this.itemSize, start: this.pos });
+        this.add = function() {
+            this._add.apply(this, arguments);
+        };
+    },
+
+    endUpdate: function() {
+        this.positions[this.positions.length - 1].end = this.pos;
+        this.add = this._add;
     },
 
     // increase the buffer size by 50% if a new item doesn't fit

@@ -4,7 +4,7 @@ var map = new llmr.Map({
     sources: {
         "mapbox streets": {
             type: 'vector',
-            id: 'streets',
+            id: 'mapbox streets',
             urls: ['http://a.gl-api-us-east-1.tilestream.net/v3/mapbox.mapbox-streets-v4/{z}/{x}/{y}.gl.pbf'],
             // urls: ['http://api.tiles.mapbox.com/v3/mapbox.mapbox-streets-v4/{z}/{x}/{y}.vector.pbf'],
             zooms: [0, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14],
@@ -24,6 +24,21 @@ var map = new llmr.Map({
     style: style_json,
     hash: true
 });
+
+document.body.onmousemove = function(e) {
+    map.featuresAt(e.clientX, e.clientY, {
+        radius: 1
+    }, function(err, features) {
+        features = features.filter(function(f) {
+            return f._bucket === 'building';
+        });
+        features.forEach(function(f) {
+            map.sources['mapbox streets'].removeFeature(f);
+            map.update();
+        });
+    });
+
+};
 
 // add geojson overlay
 var geojson = new llmr.GeoJSONSource({ type: 'Feature', properties: {}, geometry: route.routes[0].geometry});

@@ -121,7 +121,8 @@ Tile.prototype.onTileLoad = function(data) {
 
     this.buckets = {};
     for (var b in data.buckets) {
-        this.buckets[b] = new Bucket(this.map.style.stylesheet.buckets[b], this.geometry, undefined, data.buckets[b].indices);
+        this.buckets[b] = new Bucket(this.map.style.stylesheet.buckets[b], this.geometry,
+                undefined, data.buckets[b].indices, data.buckets[b].featureIndices);
     }
 
     this.loaded = true;
@@ -217,4 +218,15 @@ Tile.prototype.remove = function() {
 
 Tile.prototype.abort = function() {
     this.map.dispatcher.send('abort tile', this.id, null, this.workerID);
+};
+
+Tile.prototype.removeFeature = function(feature) {
+    var bucket = this.buckets[feature._bucket];
+    if (!bucket) throw('missing bucket');
+    var featureIndices = bucket.featureIndices;
+    var start = featureIndices[feature.index];
+    var end = featureIndices[feature.index + 1];
+    if (!end) throw('implement it');
+
+    bucket.clear(start, end);
 };

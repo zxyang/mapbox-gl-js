@@ -75,11 +75,29 @@ util.extend(Source.prototype, {
             if (pos.x >= 0 && pos.x < 4096 && pos.y >= 0 && pos.y < 4096) {
                 // The click is within the viewport. There is only ever one tile in
                 // a layer that has this property.
-                return tile.featuresAt(pos, params, callback);
+                return tile.featuresAt(pos, params, cb);
             }
         }
 
+        function cb(err, features) {
+            if (err) return callback(err);
+            for (var k = 0; k < features.length; k++) {
+                features[k]._tile = id;
+            }
+            callback(err, features);
+        }
+
         callback(null, []);
+    },
+
+    removeFeature: function(feature) {
+        if (feature._source !== this.id) throw('feature not from this datasource');
+        var tileID = feature._tile;
+
+        // todo update mru cache once that has been reimlemented
+        if (this.tiles[tileID]) {
+            this.tiles[tileID].removeFeature(feature);
+        }
     },
 
     _coveringZoomLevel: function(zoom) {
