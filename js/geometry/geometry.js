@@ -10,12 +10,14 @@ var PointVertexBuffer = require('./pointvertexbuffer.js');
 // Construct a geometry that contains a vertex and fill buffer and can be drawn using `addLine`
 module.exports = Geometry;
 
-function Geometry(geometry) {
+function Geometry(geometry, keepBuffer) {
+
+    this.keepBuffer = keepBuffer;
 
     if (!geometry) {
-        this.lineVertex = new LineVertexBuffer();
-        this.glyphVertex = new GlyphVertexBuffer();
-        this.pointVertex = new PointVertexBuffer();
+        this.lineVertex = new LineVertexBuffer(undefined, keepBuffer);
+        this.glyphVertex = new GlyphVertexBuffer(undefined, keepBuffer);
+        this.pointVertex = new PointVertexBuffer(undefined, keepBuffer);
 
         this.fillBuffers = [];
         this.fillBufferIndex = -1;
@@ -64,14 +66,21 @@ Geometry.prototype.bufferList = function() {
 Geometry.prototype.swapFillBuffers = function(vertexCount) {
 
     if (!this.fillVertex || this.fillVertex.index + vertexCount >= 65536) {
-        this.fillVertex = new FillVertexBuffer();
-        this.fillElements = new FillElementsBuffer();
+        this.fillVertex = new FillVertexBuffer(undefined, this.keepBuffer);
+        this.fillElements = new FillElementsBuffer(undefined, this.keepBuffer);
 
         this.fillBuffers.push({
             vertex: this.fillVertex,
             elements: this.fillElements
         });
         this.fillBufferIndex++;
+    }
+};
+
+Geometry.prototype.setFillBuffers = function(index) {
+    if (this.fillBufferIndex !== index) {
+        this.fillVertex = this.fillBuffers[index].vertex;
+        this.fillElements = this.fillBuffers[index].elements;
     }
 };
 

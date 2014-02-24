@@ -8,7 +8,7 @@ function Bucket(info, geometry, placement, indices, featureIndices) {
     this.geometry = geometry;
     this.placement = placement;
     this.indices = indices; // only used after transfer from worker
-    this.featureIndices = featureIndices || []; // after transfer
+    this.featureIndices = featureIndices || {}; // after transfer
     this.index = 0;
 
     if (info.type === 'text') {
@@ -48,6 +48,10 @@ Bucket.prototype.start = function() {
     this.indices = this.getIndices();
 };
 
+Bucket.prototype.end = function() {
+    this.addEndIndices(this.indices);
+};
+
 Bucket.prototype.getIndices = function() {
     var geometry = this.geometry;
 
@@ -65,9 +69,8 @@ Bucket.prototype.getIndices = function() {
 };
 
 
-Bucket.prototype.end = function() {
+Bucket.prototype.addEndIndices = function(indices) {
     var geometry = this.geometry;
-    var indices = this.indices;
 
     indices.lineVertexIndexEnd = geometry.lineVertex.index;
 
@@ -78,8 +81,6 @@ Bucket.prototype.end = function() {
     indices.glyphVertexIndexEnd = geometry.glyphVertex.index;
 
     indices.pointVertexIndexEnd = geometry.pointVertex.index;
-
-    this.featureIndices.push(this.getIndices());
 };
 
 
@@ -103,19 +104,15 @@ Bucket.prototype.addLine = function(lines) {
     }
 };
 
-Bucket.prototype.addFill = function(lines) {
+Bucket.prototype.addFill = function(lines, id) {
 
-    var geometry = this.geometry;
-    this.featureIndices[this.index] = {
-        fillBufferIndex: geometry.fillBufferIndex,
-        fillVertexIndex: geometry.fillVertex.index,
-        fillElementsIndex: geometry.fillElements.index
-    };
-    this.index++;
+    this.featureIndices[id] = this.getIndices();
 
     for (var i = 0; i < lines.length; i++) {
         this.geometry.addFill(lines[i]);
     }
+
+    this.addEndIndices(this.featureIndices[id]);
 };
 
 Bucket.prototype.addPoint = function(lines) {
@@ -132,22 +129,31 @@ Bucket.prototype.addText = function(lines, faces, shaping) {
 
 Bucket.prototype.addFeatureAt = function(index) {
     var vertex = this.geometry.fillBuffers[index.fillBufferIndex].vertex;
+
+    var old = this.geometry.fillBufferIndex;
+    this.geometry.setFillBuffers(index.fillBufferIndex);
+
     vertex.startUpdate(index.fillVertexIndex);
     this.addFeature.apply(this, Array.prototype.slice.call(arguments, 1));
     vertex.endUpdate();
+
+    this.geometry.setFillBuffers(old);
 };
 
-Bucket.prototype.clear = function(start, end) {
+Bucket.prototype.clear = function(indices) {
     // currently only works for fills
-    var vertex = this.geometry.fillBuffers[start.fillBufferIndex].vertex;
+    var vertex = this.geometry.fillBuffers[indices.fillBufferIndex].vertex;
+    var old = this.geometry.fillBufferIndex;
+    this.geometry.setFillBuffers(indices.fillBufferIndex);
 
-    vertex.startUpdate(start.fillVertexIndex);
+    vertex.startUpdate(indices.fillVertexIndex);
 
-    var numVertices = end.fillVertexIndex - start.fillVertexIndex;
+    var numVertices = indices.fillVertexIndexEnd - indices.fillVertexIndex;
     for (var i = 0; i < numVertices; i++) {
         vertex.addDegenerate();
     }
     vertex.endUpdate();
+    this.geometry.setFillBuffers(old);
 };
 
 // Builds a function body from the JSON specification. Allows specifying other compare operations.

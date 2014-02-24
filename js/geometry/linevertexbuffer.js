@@ -4,8 +4,8 @@ var Buffer = require('./buffer.js');
 
 module.exports = LineVertexBuffer;
 
-function LineVertexBuffer(buffer) {
-    Buffer.call(this, buffer);
+function LineVertexBuffer() {
+    Buffer.apply(this, arguments);
 }
 
 // scale the extrusion vector so that the normal length is this value.

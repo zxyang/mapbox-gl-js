@@ -79,6 +79,11 @@ var style_json = {
             "layer": "building",
             "type": "fill"
         },
+        "building_highlight": {
+            "source": "mapbox streets",
+            "manual": true,
+            "type": "fill"
+        },
         "road_large": {
             "source": "mapbox streets",
             "layer": "road", "field": "class", "value": ["motorway", "main"],
@@ -263,7 +268,10 @@ var style_json = {
     {
         "name": "building",
         "bucket": "building",
-
+    },
+    {
+        "name": "building_highlight",
+        "bucket": "building_highlight",
     },
     {
         "name": "borders",
@@ -405,6 +413,10 @@ var style_json = {
                 "transition-opacity": { "duration": 500, "delay": 500 },
                 "opacity": ["linear", 13, 0, 1, 0, 1]
 
+            },
+            "building_highlight": {
+                "color": [1, 0, 0, 0.4],
+                "stroke": [1, 0, 0, 0.6],
             },
             "borders": {
                 "color": [0,0,0,0.3],

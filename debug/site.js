@@ -37,15 +37,16 @@ document.body.onmousemove = function(e) {
         });
         var newf = {};
         features.forEach(function(f) {
-            if (!current[f.index]) {
-                map.sources['mapbox streets'].removeFeature(f);
+            if (!current[f.id]) {
+                map.sources['mapbox streets'].removeFeature(f, 'building');
+                map.sources['mapbox streets'].addFeature(f, 'building_highlight');
             }
-            //console.log(f);
-            current[f.index] = f;
-            newf[f.index] = true;
+            current[f.id] = f;
+            newf[f.id] = true;
         });
         for (var f in current) {
             if (!newf[f]) {
+                map.sources['mapbox streets'].removeFeature(current[f], 'building_highlight');
                 map.sources['mapbox streets'].addFeature(current[f], current[f]._bucket);
                 delete current[f];
             }

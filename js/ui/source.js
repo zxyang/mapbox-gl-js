@@ -99,13 +99,13 @@ util.extend(Source.prototype, {
         }
     },
 
-    removeFeature: function(feature) {
+    removeFeature: function(feature, bucket_name) {
         if (feature._source !== this.id) throw('feature not from this datasource');
         var tileID = feature._tile;
 
         // todo update mru cache once that has been reimlemented
         if (this.tiles[tileID]) {
-            this.tiles[tileID].removeFeature(feature);
+            this.tiles[tileID].removeFeature(feature, bucket_name);
         }
     },
 

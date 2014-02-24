@@ -115,6 +115,18 @@ Tile.prototype.onTileLoad = function(data) {
                 undefined, data.buckets[b].indices, data.buckets[b].featureIndices);
     }
 
+    // create manual buckets
+    var styleBuckets = this.source.map.style.stylesheet.buckets;
+    for (var sb in styleBuckets) {
+        if (!this.buckets[sb] && styleBuckets[sb].source === this.source.id && styleBuckets[sb].manual) {
+            this.buckets[sb] = new Bucket(styleBuckets[sb], new Geometry(undefined, true));
+            this.buckets[sb].start();
+            this.buckets[sb].end();
+        }
+    }
+
+    this.uuid = data.uuid;
+
     this.loaded = true;
 };
 
@@ -216,19 +228,22 @@ Tile.prototype.addFeature = function(feature, bucket_name) {
 
     if (bucket_name === feature._bucket) {
         var featureIndices = bucket.featureIndices;
-        var start = featureIndices[feature.index];
-        bucket.addFeatureAt(start, feature._geometry);
+        var index = featureIndices[feature.id];
+        bucket.addFeatureAt(index, feature._geometry, feature.id);
+    } else if (bucket.info.manual) {
+        bucket.addFeature(feature._geometry, feature.id);
+        bucket.end();
     } else {
-        bucket.addFeature(feature._geometry);
+        throw('not implemented');
     }
 };
 
-Tile.prototype.removeFeature = function(feature) {
-    var bucket = this.buckets[feature._bucket];
+Tile.prototype.removeFeature = function(feature, bucket_name) {
+    var bucket = this.buckets[bucket_name];
     if (!bucket) throw('missing bucket');
-    var featureIndices = bucket.featureIndices;
-    var start = featureIndices[feature.index];
-    var end = featureIndices[feature.index + 1];
 
-    bucket.clear(start, end);
+    var featureIndices = bucket.featureIndices;
+    var index = featureIndices[feature.id];
+
+    bucket.clear(index);
 };

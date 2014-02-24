@@ -44,6 +44,8 @@ function WorkerTile(url, id, zoom, callback) {
     this.id = id;
     this.zoom = zoom;
 
+    this.uuid = 0;
+
     WorkerTile.loading[id] = loadBuffer(url, function(err, data) {
         delete WorkerTile.loading[id];
         if (err) {
@@ -121,8 +123,8 @@ WorkerTile.prototype.parseBucket = function(bucket_name, features, info, faces, 
         for (var i = 0; i < features.length; i++) {
             var feature = features[i];
 
-            feature.index = bucket.index;
-            bucket.addFeature(feature.loadGeometry());
+            if (feature.id === undefined) feature.id = this.uuid++;
+            bucket.addFeature(feature.loadGeometry(), feature.id);
             this.featureTree.insert(feature.bbox(), bucket_name, feature);
         }
     }
@@ -237,6 +239,7 @@ WorkerTile.prototype.parse = function(tile, callback) {
         for (var b in layers) bucketJSON[b] = layers[b].toJSON();
 
         callback(null, {
+            uuid: self.uuid,
             geometry: self.geometry,
             buckets: bucketJSON,
             stats: self.stats && self.stats()

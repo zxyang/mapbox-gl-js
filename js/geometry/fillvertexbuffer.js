@@ -4,8 +4,8 @@ var Buffer = require('./buffer.js');
 
 module.exports = FillVertexBuffer;
 
-function FillVertexBuffer(buffer) {
-    Buffer.call(this, buffer);
+function FillVertexBuffer() {
+    Buffer.apply(this, arguments);
 }
 
 FillVertexBuffer.prototype = Object.create(Buffer.prototype);

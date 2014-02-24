@@ -4,8 +4,8 @@ var Buffer = require('./buffer.js');
 
 module.exports = FillElementsBuffer;
 
-function FillElementsBuffer(buffer) {
-    Buffer.call(this, buffer);
+function FillElementsBuffer() {
+    Buffer.apply(this, arguments);
 }
 
 FillElementsBuffer.prototype = Object.create(Buffer.prototype);
