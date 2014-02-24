@@ -83,6 +83,27 @@ Bucket.prototype.addEndIndices = function(indices) {
     indices.pointVertexIndexEnd = geometry.pointVertex.index;
 };
 
+Bucket.prototype.startUpdate = function(p) {
+    var old = this.getIndices();
+    var geometry = this.geometry;
+    geometry.setFillBuffers(p.fillBufferIndex);
+    geometry.fillVertex.startUpdate(p.fillVertexIndex);
+    //geometry.fillElements.startUpdate(p.fillElementsIndex);
+    geometry.lineVertex.startUpdate(p.lineVertexIndex);
+    geometry.pointVertex.startUpdate(p.pointVertexIndex);
+    geometry.glyphVertex.startUpdate(p.glyphVertexIndex);
+    return old;
+};
+
+Bucket.prototype.endUpdate = function(p) {
+    var geometry = this.geometry;
+    geometry.fillVertex.endUpdate();
+    //geometry.fillElements.endUpdate();
+    geometry.lineVertex.endUpdate();
+    geometry.pointVertex.endUpdate();
+    geometry.glyphVertex.endUpdate();
+    geometry.setFillBuffers(p.fillBufferIndex);
+};
 
 Bucket.prototype.toJSON = function() {
     return {
@@ -97,21 +118,21 @@ Bucket.prototype.addMarkers = function(lines) {
     }
 };
 
-Bucket.prototype.addLine = function(lines) {
+Bucket.prototype.addLine = function(lines, id) {
     var info = this.info;
+    this.featureIndices[id] = this.getIndices();
     for (var i = 0; i < lines.length; i++) {
         this.geometry.addLine(lines[i], info.join, info.cap, info.miterLimit, info.roundLimit);
     }
+    this.addEndIndices(this.featureIndices[id]);
 };
 
 Bucket.prototype.addFill = function(lines, id) {
 
     this.featureIndices[id] = this.getIndices();
-
     for (var i = 0; i < lines.length; i++) {
         this.geometry.addFill(lines[i]);
     }
-
     this.addEndIndices(this.featureIndices[id]);
 };
 
@@ -127,33 +148,29 @@ Bucket.prototype.addText = function(lines, faces, shaping) {
     }
 };
 
-Bucket.prototype.addFeatureAt = function(index) {
-    var vertex = this.geometry.fillBuffers[index.fillBufferIndex].vertex;
+Bucket.prototype.addFeatureAt = function(indices, lines, id) {
 
-    var old = this.geometry.fillBufferIndex;
-    this.geometry.setFillBuffers(index.fillBufferIndex);
-
-    vertex.startUpdate(index.fillVertexIndex);
+    var old = this.startUpdate(indices);
+    var oldIndex = this.featureIndices[id];
     this.addFeature.apply(this, Array.prototype.slice.call(arguments, 1));
-    vertex.endUpdate();
-
-    this.geometry.setFillBuffers(old);
+    this.featureIndices[id] = oldIndex;
+    this.endUpdate(old);
 };
 
 Bucket.prototype.clear = function(indices) {
     // currently only works for fills
-    var vertex = this.geometry.fillBuffers[indices.fillBufferIndex].vertex;
-    var old = this.geometry.fillBufferIndex;
-    this.geometry.setFillBuffers(indices.fillBufferIndex);
-
-    vertex.startUpdate(indices.fillVertexIndex);
+    var old = this.startUpdate(indices);
 
     var numVertices = indices.fillVertexIndexEnd - indices.fillVertexIndex;
     for (var i = 0; i < numVertices; i++) {
-        vertex.addDegenerate();
+        this.geometry.fillVertex.addDegenerate();
     }
-    vertex.endUpdate();
-    this.geometry.setFillBuffers(old);
+    numVertices = indices.lineVertexIndexEnd - indices.lineVertexIndex;
+    for (var k = 0; k < numVertices; k++) {
+        this.geometry.lineVertex.addDegenerate();
+    }
+
+    this.endUpdate(old);
 };
 
 // Builds a function body from the JSON specification. Allows specifying other compare operations.

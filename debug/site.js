@@ -25,31 +25,45 @@ var map = new llmr.Map({
     hash: true
 });
 
-    var current = {};
-document.body.onmousemove = function(e) {
+function highlighter(bucket_name) {
 
-    map.featuresAt(e.clientX, e.clientY, {
-        geometry: true,
-        radius: 1
-    }, function(err, features) {
-        features = features.filter(function(f) {
-            return f._bucket === 'building';
-        });
+    var current = {};
+
+    return function(features) {
         var newf = {};
+        features = features.filter(function(f) {
+            return f._bucket === bucket_name;
+        });
         features.forEach(function(f) {
             if (!current[f.id]) {
-                map.sources['mapbox streets'].removeFeature(f, 'building');
-                map.sources['mapbox streets'].addFeature(f, 'building_highlight');
+                map.sources['mapbox streets'].removeFeature(f, bucket_name);
+                map.sources['mapbox streets'].addFeature(f, bucket_name + '_highlight');
             }
             current[f.id] = f;
             newf[f.id] = true;
         });
         for (var f in current) {
             if (!newf[f]) {
-                map.sources['mapbox streets'].removeFeature(current[f], 'building_highlight');
-                map.sources['mapbox streets'].addFeature(current[f], current[f]._bucket);
+                map.sources['mapbox streets'].removeFeature(current[f], bucket_name + '_highlight');
+                map.sources['mapbox streets'].addFeature(current[f], bucket_name);
                 delete current[f];
             }
+        }
+        return Object.keys(current).length;
+    };
+}
+
+var building = highlighter('building');
+var roads = highlighter('road_regular');
+document.body.onmousemove = function(e) {
+
+    map.featuresAt(e.clientX, e.clientY, {
+        geometry: true,
+        radius: 5
+    }, function(err, features) {
+        var n = building(features);
+        n += roads(features);
+        if (n) {
         }
         map.update();
     });

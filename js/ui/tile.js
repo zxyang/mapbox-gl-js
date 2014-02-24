@@ -117,9 +117,10 @@ Tile.prototype.onTileLoad = function(data) {
 
     // create manual buckets
     var styleBuckets = this.source.map.style.stylesheet.buckets;
+    var manualGeometry = new Geometry(undefined, true);
     for (var sb in styleBuckets) {
         if (!this.buckets[sb] && styleBuckets[sb].source === this.source.id && styleBuckets[sb].manual) {
-            this.buckets[sb] = new Bucket(styleBuckets[sb], new Geometry(undefined, true));
+            this.buckets[sb] = new Bucket(styleBuckets[sb], manualGeometry);
             this.buckets[sb].start();
             this.buckets[sb].end();
         }

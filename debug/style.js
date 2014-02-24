@@ -94,6 +94,11 @@ var style_json = {
             "layer": "road", "field": "class", "value": "street",
             "type": "line", "cap": "round", "join": "bevel"
         },
+        "road_regular_highlight": {
+            "source": "mapbox streets",
+            "manual": true,
+            "type": "line", "cap": "round", "join": "bevel"
+        },
         "road_limited": {
             "source": "mapbox streets",
             "layer": "road", "field": "class", "value": "street_limited",
@@ -245,6 +250,10 @@ var style_json = {
             "bucket": "road_regular",
         },
         {
+            "name": "road_regular_highlight",
+            "bucket": "road_regular_highlight",
+        },
+        {
             "name": "path",
             "bucket": "path",
         },
@@ -383,6 +392,10 @@ var style_json = {
             },
             "road_regular": {
                 "color": "road",
+                "width": ["exponential", 9, -1, 0.2, 1],
+            },
+            "road_regular_highlight": {
+                "color": [0, 0, 1, 1],
                 "width": ["exponential", 9, -1, 0.2, 1],
             },
             "path": {

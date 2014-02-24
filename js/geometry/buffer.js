@@ -108,7 +108,7 @@ Buffer.prototype = {
     },
 
     endUpdate: function() {
-        this.positions[this.positions.length - 1].end = this.pos;
+        if (this.buffer) this.positions[this.positions.length - 1].end = this.pos;
         this.add = this._add;
 
         if (this.keepBuffer) {
