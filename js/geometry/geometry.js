@@ -81,6 +81,7 @@ Geometry.prototype.setFillBuffers = function(index) {
     if (this.fillBufferIndex !== index) {
         this.fillVertex = this.fillBuffers[index].vertex;
         this.fillElements = this.fillBuffers[index].elements;
+        this.fillBufferIndex = index;
     }
 };
 
