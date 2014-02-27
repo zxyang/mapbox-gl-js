@@ -8,7 +8,6 @@ function Buffer(buffer, keepBuffer) {
     if (!buffer) {
         this.array = new ArrayBuffer(this.defaultLength);
         this.length = this.defaultLength;
-        this.setupViews();
 
     } else {
         // we only recreate buffers after receiving them from workers for binding to gl,
@@ -17,6 +16,7 @@ function Buffer(buffer, keepBuffer) {
         this.pos = buffer.pos;
     }
 
+    this.setupViews();
     this.keepBuffer = keepBuffer;
     this.positions = [];
 }
@@ -95,7 +95,7 @@ Buffer.prototype = {
 
     startUpdate: function(index) {
 
-        if (this.keepBuffer) {
+        if (this.keepBuffer || !this.buffer) {
             this.endPos = this.pos;
             this.pos = index * this.itemSize;
         }
@@ -118,7 +118,7 @@ Buffer.prototype = {
         }
         this.add = this._add;
 
-        if (this.keepBuffer) {
+        if (this.keepBuffer || !this.buffer) {
             this.pos = this.endPos;
         }
     },
