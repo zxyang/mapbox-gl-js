@@ -71,6 +71,7 @@ Buffer.prototype = {
                     start: this.uploadedPos,
                     end: this.pos
                 });
+                this.uploadedPos = this.pos;
             }
 
             // If the buffer has been updated since it was last bound, upload those changes
@@ -108,7 +109,13 @@ Buffer.prototype = {
     },
 
     endUpdate: function() {
-        if (this.buffer) this.positions[this.positions.length - 1].end = this.pos;
+        if (this.buffer) {
+            if (this.positions[this.positions.length - 1].start === this.pos) {
+                this.positions.pop();
+            } else {
+                this.positions[this.positions.length - 1].end = this.pos;
+            }
+        }
         this.add = this._add;
 
         if (this.keepBuffer) {

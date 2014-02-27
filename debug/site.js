@@ -25,51 +25,24 @@ var map = new llmr.Map({
     hash: true
 });
 
-function highlighter(bucket_name) {
-
-    var current = {};
-
-    return function(features) {
-        var newf = {};
-        features = features.filter(function(f) {
-            return f._bucket === bucket_name;
-        });
-        features.forEach(function(f) {
-            if (!current[f.id]) {
-                map.sources['mapbox streets'].removeFeature(f, bucket_name);
-                map.sources['mapbox streets'].addFeature(f, bucket_name + '_highlight');
-            }
-            current[f.id] = f;
-            newf[f.id] = true;
-        });
-        for (var f in current) {
-            if (!newf[f]) {
-                map.sources['mapbox streets'].removeFeature(current[f], bucket_name + '_highlight');
-                map.sources['mapbox streets'].addFeature(current[f], bucket_name);
-                delete current[f];
-            }
-        }
-        return Object.keys(current).length;
-    };
-}
-
-var building = highlighter('building');
-var roads = highlighter('road_regular');
-document.body.onmousemove = function(e) {
-
-    map.featuresAt(e.clientX, e.clientY, {
-        geometry: true,
-        radius: 5
-    }, function(err, features) {
-        var n = building(features);
-        n += roads(features);
-        if (n) {
-        }
-        map.update();
-    });
-
-};
-
 // add geojson overlay
 var geojson = new llmr.GeoJSONSource({ type: 'Feature', properties: {}, geometry: route.routes[0].geometry});
 map.addSource('geojson', geojson);
+
+highlight('building');
+highlight('road_regular');
+
+function highlight(bucket_name) {
+    map.mouseEvents.on('mouseover', function(f) {
+        if (f._bucket !== bucket_name) return;
+        map.sources['mapbox streets'].removeFeature(f, bucket_name);
+        map.sources['mapbox streets'].addFeature(f, bucket_name + '_highlight');
+        map.update();
+    });
+    map.mouseEvents.on('mouseout', function(f) {
+        if (f._bucket !== bucket_name) return;
+        map.sources['mapbox streets'].removeFeature(f, bucket_name + '_highlight');
+        map.sources['mapbox streets'].addFeature(f, bucket_name);
+        map.update();
+    });
+}

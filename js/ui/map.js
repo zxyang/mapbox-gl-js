@@ -11,6 +11,7 @@ var Dispatcher = require('../util/dispatcher.js'),
     Transform = require('./transform.js'),
     Hash = require('./hash.js'),
     Handlers = require('./handlers.js'),
+    MouseEvents = require('./mousevents.js'),
     Source = require('./source.js'),
     Easings = require('./easings.js');
 
@@ -44,6 +45,7 @@ var Map = module.exports = function(config) {
 
     this.handlers = new Handlers(this);
     this.dispatcher = new Dispatcher(7, this);
+    this.mouseEvents = new MouseEvents(this);
 
     this.dirty = false;
 
