@@ -8,15 +8,43 @@ evented(MouseEvents);
 
 function MouseEvents(map) {
     this.map = map;
+    this.map.canvas.addEventListener('click', this.click.bind(this));
+    this.map.canvas.addEventListener('mousedown', this.mousedown.bind(this));
+    this.map.canvas.addEventListener('mouseup', this.mouseup.bind(this));
     this.map.canvas.addEventListener('mousemove', this.mousemove.bind(this));
     this.map.canvas.addEventListener('mouseout', this.mouseout.bind(this));
+
+    this.params = {
+        geometry: true,
+        radius: 5
+    };
 
     this.previous = {}; // features the mouse was over last time
 }
 
 
+MouseEvents.prototype.click = fireAtPoint('click');
+MouseEvents.prototype.mousedown = fireAtPoint('mousedown');
+MouseEvents.prototype.mouseup = fireAtPoint('mouseup');
+
+function fireAtPoint(event_name) {
+    return function(ev) {
+        var mouseEvents = this;
+        var hasListeners = this._events && this._events[event_name] && this._events[event_name].length;
+
+        if (hasListeners) {
+            this.map.featuresAt(ev.clientX, ev.clientY, this.params, function(err, features) {
+                if (err) return;
+                for (var i = 0; i < features.length; i++) {
+                    mouseEvents.fire(event_name, [features[i]]);
+                }
+            });
+        }
+    };
+}
+
 // Mouse has moved on the canvas. Compare features at current position with
-// features at the last position and trigger mouse{move,over,out} events.
+// features at the last position and fire mouse{move,over,out} events.
 MouseEvents.prototype.mousemove = function(ev) {
     var mouseEvents = this;
     var previous = this.previous;
@@ -28,10 +56,7 @@ MouseEvents.prototype.mousemove = function(ev) {
 
     if (mousemove || mouseover || mouseout) {
 
-        this.map.featuresAt(ev.clientX, ev.clientY, {
-            geometry: true,
-            radius: 5
-        }, function(err, features) {
+        this.map.featuresAt(ev.clientX, ev.clientY, this.params, function(err, features) {
             if (err) return;
 
             var current = {};
@@ -62,7 +87,7 @@ MouseEvents.prototype.mousemove = function(ev) {
     }
 };
 
-// Mouse has left the canvas, trigger mouseout on all features
+// Mouse has left the canvas, fire mouseout on all features
 MouseEvents.prototype.mouseout = function() {
     for (var f in this.previous) {
         this.fire('mouseout', [this.previous[f]]);
