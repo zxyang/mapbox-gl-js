@@ -43,18 +43,6 @@ Tile.prototype._load = function() {
     });
 };
 
-// Tile.prototype.stats = function(callback) {
-//     var tile = this;
-//     if (this._stats) {
-//         callback(null, this._stats);
-//     } else {
-//         this.map.dispatcher.send('list layers', this.id, function(err, data) {
-//             tile._stats = data;
-//             callback(err, data);
-//         }, this.workerID);
-//     }
-// };
-
 Tile.prototype.positionAt = function(id, clickX, clickY) {
     var tilePos = Tile.fromID(id);
     var z = tilePos.z, x = tilePos.x, y = tilePos.y, w = tilePos.w;
@@ -104,8 +92,11 @@ Tile.prototype.featuresAt = function(pos, params, callback) {
 };
 
 Tile.prototype.onTileLoad = function(data) {
+
+    // Tile has been removed from the map
+    if (!this.map) return;
+
     this.geometry = data.geometry;
-    this.stats = data.stats;
 
     this.geometry = new Geometry(this.geometry);
 

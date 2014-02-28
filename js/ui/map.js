@@ -53,6 +53,7 @@ var Map = module.exports = function(config) {
 
     if (config.sources) {
         for (var id in config.sources) {
+            config.sources[id].id = id;
             this.addSource(id, new Source(config.sources[id]));
         }
     }
@@ -77,6 +78,7 @@ util.extend(Map.prototype, {
 
     addSource: function(id, source) {
         this.sources[id] = source;
+        source.id = id;
         if (source.onAdd) {
             source.onAdd(this);
         }
@@ -152,9 +154,10 @@ util.extend(Map.prototype, {
     featuresAt: function(x, y, params, callback) {
         var features = [];
         var error = null;
-        var sources = this.sources;
-        util.asyncEach(Object.keys(sources), function(id, callback) {
-            sources[id].featuresAt(x, y, params, function(err, result) {
+        var map = this;
+        util.asyncEach(Object.keys(this.sources), function(id, callback) {
+            var source = map.sources[id];
+            source.featuresAt(x, y, params, function(err, result) {
                 if (result) features = features.concat(result.map(addSource));
                 if (err) error = err;
                 callback();
@@ -313,7 +316,6 @@ util.extend(Map.prototype, {
         if (!this.style) return;
 
         for (var id in this.sources) {
-            this.sources[id].loadNewTiles = !!this.style.sources[id];
             this.sources[id].update();
         }
 
