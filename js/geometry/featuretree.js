@@ -28,6 +28,14 @@ FeatureTree.prototype.query = function(args, callback) {
 
     radius *= 4096 / args.scale;
 
+    var radii = args.params.radii;
+    if (radii) {
+        for (var r in radii) {
+            radii[r] *= 4096 / args.scale;
+            radius = Math.max(radius, radii[r]);
+        }
+    }
+
     // console.warn(args.scale);
     // var radius = 0;
     var x = args.x;
@@ -38,7 +46,7 @@ FeatureTree.prototype.query = function(args, callback) {
     if (args.params.buckets) {
         this.queryBuckets(matching, x, y, radius, args.params, callback);
     } else {
-        this.queryFeatures(matching, x, y, radius, args.params, callback);
+        this.queryFeatures(matching, x, y, radii || radius, args.params, callback);
     }
 };
 
@@ -53,7 +61,9 @@ FeatureTree.prototype.queryFeatures = function(matching, x, y, radius, params, c
         if (params.bucket && matching[i].bucket !== params.bucket) continue;
         if (params.type && type !== params.type) continue;
 
-        if (geometryContainsPoint(geometry, type, { x: x, y: y }, radius)) {
+        var r = typeof radius === 'number' ? radius : (radius[matching[i].bucket] || 0);
+
+        if (geometryContainsPoint(geometry, type, { x: x, y: y }, r)) {
             var props = {
                 _bucket: matching[i].bucket,
                 _type: type

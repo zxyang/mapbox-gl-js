@@ -157,6 +157,7 @@ util.extend(Map.prototype, {
         var map = this;
         util.asyncEach(Object.keys(this.sources), function(id, callback) {
             var source = map.sources[id];
+            if (!params.radius) params.radii = map.style.radii[id];
             source.featuresAt(x, y, params, function(err, result) {
                 if (result) features = features.concat(result.map(addSource));
                 if (err) error = err;

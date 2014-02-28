@@ -16,7 +16,6 @@ function MouseEvents(map) {
 
     this.params = {
         geometry: true,
-        radius: 5
     };
 
     this.previous = {}; // features the mouse was over last time

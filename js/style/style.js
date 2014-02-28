@@ -81,6 +81,7 @@ Style.prototype.recalculate = function(z) {
     // Find all the sources that are currently being used
     // so that we can automatically enable/disable them as needed
     var buckets = this.stylesheet.buckets;
+    var radii = this.radii = {};
     this.sources = {};
 
     addSources(this.stylesheet.structure, this.sources);
@@ -97,7 +98,30 @@ Style.prototype.recalculate = function(z) {
 
             } else {
                 var bucket = buckets[layer.bucket];
-                if (bucket && bucket.source) obj[bucket.source] = true;
+                if (bucket && bucket.source) {
+
+                    // Mark source as used so that tiles are loaded
+                    obj[bucket.source] = true;
+
+                    // Find the maximum distance of the rendered feature from the geometry.
+                    // This distance will be used as the radius in map.featuresAt
+                    var r = (radii[bucket.source] && radii[bucket.source][layer.bucket]) || 0;
+
+                    if (bucket.size) {
+                        // should this also read the size from the sprite?
+                        r = Math.max(r, Math.sqrt(bucket.size.x * bucket.size.x, bucket.size.y * bucket.size.y) / 2);
+                    }
+
+                    if (style.width) {
+                        r = Math.max(r, style.width / 2);
+                    }
+
+                    if (r) {
+                        if (radii[bucket.source] === undefined) radii[bucket.source] = {};
+                        radii[bucket.source][layer.bucket] = r;
+                    }
+                }
+
             }
         }
     }
