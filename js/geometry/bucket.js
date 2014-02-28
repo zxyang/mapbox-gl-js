@@ -136,10 +136,12 @@ Bucket.prototype.addFill = function(lines, id) {
     this.addEndIndices(this.featureIndices[id]);
 };
 
-Bucket.prototype.addPoint = function(lines) {
+Bucket.prototype.addPoint = function(lines, id) {
+    this.featureIndices[id] = this.getIndices();
     for (var i = 0; i < lines.length; i++) {
-        this.geometry.addPoints(lines[i], this.placement.collision,  this.size, this.padding);
+        this.geometry.addPoints(lines[i], this.placement && this.placement.collision,  this.size, this.padding);
     }
+    this.addEndIndices(this.featureIndices[id]);
 };
 
 Bucket.prototype.addText = function(lines, faces, shaping) {
@@ -161,13 +163,14 @@ Bucket.prototype.clear = function(indices) {
     // currently only works for fills
     var old = this.startUpdate(indices);
 
-    var numVertices = indices.fillVertexIndexEnd - indices.fillVertexIndex;
-    for (var i = 0; i < numVertices; i++) {
+    for (var i = indices.fillVertexIndex; i < indices.fillVertexIndexEnd; i++) {
         this.geometry.fillVertex.addDegenerate();
     }
-    numVertices = indices.lineVertexIndexEnd - indices.lineVertexIndex;
-    for (var k = 0; k < numVertices; k++) {
+    for (var k = indices.lineVertexIndex; k < indices.lineVertexIndexEnd; k++) {
         this.geometry.lineVertex.addDegenerate();
+    }
+    for (var j = indices.pointVertexIndex; j < indices.pointVertexIndexEnd; j++) {
+        this.geometry.pointVertex.addDegenerate();
     }
 
     this.endUpdate(old);

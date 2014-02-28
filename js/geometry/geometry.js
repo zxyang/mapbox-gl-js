@@ -122,7 +122,7 @@ Geometry.prototype.addPoints = function(vertices, collision, size, padding) {
         var point = vertices[i];
 
         // place to prevent collisions
-        if (size) {
+        if (size && collision) {
             var ratio = 8, // todo uhardcode tileExtent/tileSize
                 x = size.x / 2 * ratio,
                 y = size.y / 2 * ratio,
