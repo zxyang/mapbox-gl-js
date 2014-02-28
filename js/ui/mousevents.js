@@ -63,11 +63,12 @@ MouseEvents.prototype.mousemove = function(ev) {
 
             for (var i = 0; i < features.length; i++) {
                 var feature = features[i];
+                var id = feature._bucket + feature.id;
 
                 if (current[feature._tile] === undefined) current[feature._tile] = {};
-                current[feature._tile][feature.id] = feature;
+                current[feature._tile][id] = feature;
 
-                if (!previous[feature._tile] || !previous[feature._tile][feature.id]) {
+                if (!previous[feature._tile] || !previous[feature._tile][id]) {
                     mouseEvents.fire('mouseover', [feature]);
                 }
 
