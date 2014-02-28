@@ -47,7 +47,6 @@ function fireAtPoint(event_name) {
 // features at the last position and fire mouse{move,over,out} events.
 MouseEvents.prototype.mousemove = function(ev) {
     var mouseEvents = this;
-    var previous = this.previous;
 
     // Check if there are events registered. If there aren't,  don't query features
     var mousemove = this._events && this._events.mousemove && this._events.mousemove.length;
@@ -60,6 +59,7 @@ MouseEvents.prototype.mousemove = function(ev) {
             if (err) return;
 
             var current = {};
+            var previous = mouseEvents.previous;
 
             for (var i = 0; i < features.length; i++) {
                 var feature = features[i];
