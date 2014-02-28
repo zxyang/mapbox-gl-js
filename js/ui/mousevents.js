@@ -90,8 +90,10 @@ MouseEvents.prototype.mousemove = function(ev) {
 
 // Mouse has left the canvas, fire mouseout on all features
 MouseEvents.prototype.mouseout = function() {
-    for (var f in this.previous) {
-        this.fire('mouseout', [this.previous[f]]);
+    for (var t in this.previous) {
+        for (var f in this.previous[t]) {
+            this.fire('mouseout', [this.previous[t][f]]);
+        }
     }
 
     this.previous = {};
