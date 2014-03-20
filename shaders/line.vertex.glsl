@@ -46,7 +46,7 @@ void main() {
     // If the x coordinate is the maximum integer, we move the z coordinates out
     // of the view plane so that the triangle gets clipped. This makes it easier
     // for us to create degenerate triangle strips.
-    float z = step(32767.0, a_pos.x);
+    float z = 1.0 + step(32767.0, a_pos.x);
 
     // When drawing points, skip every other vertex
     z += u_point * step(1.0, v_normal.y);
@@ -57,6 +57,8 @@ void main() {
     // tile's zoom level.
     gl_Position = u_posmatrix * vec4(floor(a_pos / 2.0), 0.0, 1.0) + u_exmatrix * vec4(dist, z, 0.0);
     v_linesofar = a_linesofar * u_ratio;
+
+    gl_Position.z = z * gl_Position.w;
 
 
     gl_PointSize = 2.0 * u_linewidth.s - 1.0;

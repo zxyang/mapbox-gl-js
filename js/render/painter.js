@@ -321,7 +321,7 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
         var type = bucket.info.type,
             draw = type === 'texta' ? drawText :
                    type === 'fill' ? drawFill :
-                   false && type === 'line' ? drawLine :
+                   type === 'line' ? drawLine :
                    type === 'point' ? drawPoint :
                    type === 'raster' ? drawRaster : null;
 
