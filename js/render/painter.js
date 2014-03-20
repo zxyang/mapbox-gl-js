@@ -45,7 +45,7 @@ GLPainter.prototype.resize = function(width, height) {
     // Initialize projection matrix
     this.projectionMatrix = mat4.create();
     var altitude = this.transform.altitude;
-    mat4.perspective(this.projectionMatrix, 2 * Math.atan((height / 2) / altitude), width/height, 1, 3);
+    mat4.perspective(this.projectionMatrix, 2 * Math.atan((height / 2) / altitude), width/height, 0, altitude + 1);
     mat4.translate(this.projectionMatrix, this.projectionMatrix, [0, 0, -altitude]);
     mat4.scale(this.projectionMatrix, this.projectionMatrix, [1, -1, 1/height]);
 
