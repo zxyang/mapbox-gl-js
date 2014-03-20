@@ -22,6 +22,8 @@ function Transform(tileSize) {
     this.zoom = 0;
     this.center = new LatLng(0, 0);
     this.angle = 0;
+    this.tilt = 35;
+    this.altitude = 2;
 }
 
 Transform.prototype = {

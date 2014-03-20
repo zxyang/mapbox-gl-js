@@ -41,9 +41,13 @@ function GLPainter(gl, transform) {
  */
 GLPainter.prototype.resize = function(width, height) {
     var gl = this.gl;
+
     // Initialize projection matrix
     this.projectionMatrix = mat4.create();
-    mat4.ortho(this.projectionMatrix, 0, width, height, 0, 0, -1);
+    var altitude = this.transform.altitude;
+    mat4.perspective(this.projectionMatrix, 2 * Math.atan((height / 2) / altitude), width/height, 1, 3);
+    mat4.translate(this.projectionMatrix, this.projectionMatrix, [0, 0, -altitude]);
+    mat4.scale(this.projectionMatrix, this.projectionMatrix, [1, -1, 1/height]);
 
     this.width = width * window.devicePixelRatio;
     this.height = height * window.devicePixelRatio;
@@ -315,16 +319,16 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
         }
 
         var type = bucket.info.type,
-            draw = type === 'text' ? drawText :
+            draw = type === 'texta' ? drawText :
                    type === 'fill' ? drawFill :
-                   type === 'line' ? drawLine :
-                   type === 'point' ? drawPoint :
+                   false && type === 'line' ? drawLine :
+                   false && type === 'point' ? drawPoint :
                    type === 'raster' ? drawRaster : null;
 
         if (draw) {
             draw(gl, this, bucket, layerStyle, params, style.sprite);
         } else {
-            console.warn('Unknown bucket type ' + type);
+            //console.warn('Unknown bucket type ' + type);
         }
 
         if (layerStyle.translate) {

@@ -29,7 +29,7 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
     // Use 64 bit floats to avoid precision issues.
     this.posMatrix = new Float64Array(16);
     mat4.identity(this.posMatrix);
-    mat4.translate(this.posMatrix, this.posMatrix, [transform.centerPoint.x, transform.centerPoint.y, 0]);
+    mat4.rotateX(this.posMatrix, this.posMatrix, Math.PI / 180 * transform.tilt);
     mat4.rotateZ(this.posMatrix, this.posMatrix, transform.angle);
     mat4.translate(this.posMatrix, this.posMatrix, [-transform.x, -transform.y, 0]);
     mat4.translate(this.posMatrix, this.posMatrix, [scale * x, scale * y, 1]);
@@ -38,6 +38,7 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
     this.invPosMatrix = new Float64Array(16);
     mat4.invert(this.invPosMatrix, this.posMatrix);
 
+    // Scale from tile coordinates to pixels
     mat4.scale(this.posMatrix, this.posMatrix, [ scale / this.tileExtent, scale / this.tileExtent, 1 ]);
     mat4.multiply(this.posMatrix, painter.projectionMatrix, this.posMatrix);
 
