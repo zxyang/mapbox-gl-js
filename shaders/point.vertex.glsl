@@ -21,7 +21,7 @@ void main(void) {
     gl_PointSize = u_size.x * root2;
 
     // if u_zoom < a_minzoom hide this point
-    gl_Position.z += 1.0 - step(a_minzoom, u_zoom);
+    gl_Position.z = (2.0 - step(a_minzoom, u_zoom)) * gl_Position.w;
 
     float angle = a_angle * 2.0 * PI / 256.0;
 

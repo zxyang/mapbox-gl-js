@@ -322,7 +322,7 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
             draw = type === 'texta' ? drawText :
                    type === 'fill' ? drawFill :
                    false && type === 'line' ? drawLine :
-                   false && type === 'point' ? drawPoint :
+                   type === 'point' ? drawPoint :
                    type === 'raster' ? drawRaster : null;
 
         if (draw) {
