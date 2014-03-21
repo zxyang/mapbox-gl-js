@@ -46,7 +46,8 @@ void main() {
     // If the x coordinate is the maximum integer, we move the z coordinates out
     // of the view plane so that the triangle gets clipped. This makes it easier
     // for us to create degenerate triangle strips.
-    float z = 1.0 + step(32767.0, a_pos.x);
+    float degenerate = step(32767.0, a_pos.x);
+    float z = 1.0 + degenerate;
 
     // When drawing points, skip every other vertex
     z += u_point * step(1.0, v_normal.y);
@@ -55,7 +56,12 @@ void main() {
     // model/view matrix. Add the extrusion vector *after* the model/view matrix
     // because we're extruding the line in pixel space, regardless of the current
     // tile's zoom level.
-    gl_Position = u_posmatrix * vec4(floor(a_pos / 2.0), 0.0, 1.0) + u_exmatrix * vec4(dist, z, 0.0);
+
+    // The *(1.0 - dengerate) is a hack to move degenerate vertices to 0,0.
+    // For some reason I can't figure out, the degenerate triangles aren't degenerate
+    // if we leave them far out. TODO change.
+    gl_Position = u_posmatrix * vec4(floor(a_pos * ((1.0 - degenerate) / 2.0)), 0.0, 1.0) + u_exmatrix * vec4(dist, z, 0.0);
+
     v_linesofar = a_linesofar * u_ratio;
 
     gl_Position.z = z * gl_Position.w;
