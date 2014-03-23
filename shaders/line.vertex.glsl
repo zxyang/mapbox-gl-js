@@ -24,7 +24,6 @@ uniform float u_debug;
 uniform float u_ratio;
 uniform vec2 u_linewidth;
 uniform vec4 u_color;
-uniform float u_point;
 
 varying vec2 v_normal;
 varying float v_linesofar;
@@ -41,31 +40,12 @@ void main() {
     // Scale the extrusion vector down to a normal and then up by the line width
     // of this vertex.
     vec2 extrude = a_extrude / scale;
-    vec2 dist = u_linewidth.s * extrude * (1.0 - u_point);
-
-    // If the x coordinate is the maximum integer, we move the z coordinates out
-    // of the view plane so that the triangle gets clipped. This makes it easier
-    // for us to create degenerate triangle strips.
-    float degenerate = step(32767.0, a_pos.x);
-    float z = 1.0 + degenerate;
-
-    // When drawing points, skip every other vertex
-    z += u_point * step(1.0, v_normal.y);
+    vec2 dist = u_linewidth.s * extrude;
 
     // Remove the texture normal bit of the position before scaling it with the
     // model/view matrix. Add the extrusion vector *after* the model/view matrix
     // because we're extruding the line in pixel space, regardless of the current
     // tile's zoom level.
-
-    // The *(1.0 - dengerate) is a hack to move degenerate vertices to 0,0.
-    // For some reason I can't figure out, the degenerate triangles aren't degenerate
-    // if we leave them far out. TODO change.
-    gl_Position = u_posmatrix * vec4(floor(a_pos * ((1.0 - degenerate) / 2.0)), 0.0, 1.0) + u_exmatrix * vec4(dist, z, 0.0);
-
+    gl_Position = u_posmatrix * vec4(floor(a_pos / 2.0), 0.0, 1.0) + u_exmatrix * vec4(dist, 0.0, 0.0);
     v_linesofar = a_linesofar * u_ratio;
-
-    gl_Position.z = z * gl_Position.w;
-
-
-    gl_PointSize = 2.0 * u_linewidth.s - 1.0;
 }
