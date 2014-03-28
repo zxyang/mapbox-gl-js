@@ -44,6 +44,7 @@ StyleDeclaration.prototype.parsers = {
     strokeWidth: parseWidth,
     size: parseWidth,
     rotate: parseWidth,
+    z: parseWidth,
 
     dasharray: parseWidthArray,
     translate: parseWidthArray,

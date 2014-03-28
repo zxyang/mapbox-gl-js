@@ -22,6 +22,7 @@ uniform float u_fadedist;
 uniform float u_minfadezoom;
 uniform float u_maxfadezoom;
 uniform float u_fadezoom;
+uniform float u_z;
 
 uniform vec2 u_texsize;
 
@@ -67,6 +68,7 @@ void main() {
     // hide if (angle >= a_rangeend && angle < rangestart)
     z += step(a_rangeend, u_angle) * (1.0 - step(a_rangestart, u_angle));
 
-    gl_Position = u_posmatrix * vec4(a_pos, 0, 1) + u_exmatrix * vec4(a_offset / 64.0, z, 0);
+    gl_Position = u_posmatrix * vec4(a_pos, u_z, 1) + u_exmatrix * vec4(a_offset / 64.0, 0, 0);
+    gl_Position.z = (z + 1.0) * gl_Position.w;
     v_tex = a_tex * 4.0 / u_texsize;
 }

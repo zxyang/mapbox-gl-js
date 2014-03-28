@@ -114,11 +114,11 @@ GLPainter.prototype.setup = function() {
 
     this.sdfShader = gl.initializeShader('sdf',
         ['a_pos', 'a_tex', 'a_offset', 'a_angle', 'a_minzoom', 'a_maxzoom', 'a_rangeend', 'a_rangestart', 'a_labelminzoom'],
-        ['u_posmatrix', 'u_exmatrix', 'u_texture', 'u_texsize', 'u_color', 'u_gamma', 'u_buffer', 'u_angle', 'u_zoom', 'u_flip', 'u_fadedist', 'u_minfadezoom', 'u_maxfadezoom', 'u_fadezoom']);
+        ['u_posmatrix', 'u_exmatrix', 'u_texture', 'u_texsize', 'u_color', 'u_gamma', 'u_buffer', 'u_angle', 'u_zoom', 'u_flip', 'u_fadedist', 'u_minfadezoom', 'u_maxfadezoom', 'u_fadezoom', 'u_z']);
 
     this.outlineShader = gl.initializeShader('outline',
         ['a_pos'],
-        ['u_posmatrix', 'u_color', 'u_world']
+        ['u_posmatrix', 'u_color', 'u_world', 'u_z']
     );
 
     this.patternShader = gl.initializeShader('pattern',
@@ -128,7 +128,7 @@ GLPainter.prototype.setup = function() {
 
     this.fillShader = gl.initializeShader('fill',
         ['a_pos'],
-        ['u_posmatrix', 'u_color']
+        ['u_posmatrix', 'u_color', 'u_z']
     );
 
     // The backgroundBuffer is used when drawing to the full *canvas*
@@ -319,10 +319,10 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
         }
 
         var type = bucket.info.type,
-            draw = type === 'texta' ? drawText :
+            draw = type === 'text' ? drawText :
                    type === 'fill' ? drawFill :
                    type === 'line' ? drawLine :
-                   type === 'point' ? drawPoint :
+                   type === 'pointa' ? drawPoint :
                    type === 'raster' ? drawRaster : null;
 
         if (draw) {

@@ -44,6 +44,7 @@ function drawFill(gl, painter, bucket, layerStyle, params, imageSprite, backgrou
 
             // Draw the actual triangle fan into the stencil buffer.
             gl.switchShader(painter.fillShader, painter.translatedMatrix || painter.tile.posMatrix, painter.tile.exMatrix);
+            gl.uniform1f(painter.fillShader.u_z, layerStyle.z || 0);
 
             // Draw all buffers
             buffer = bucket.indices.fillBufferIndex;
@@ -94,6 +95,7 @@ function drawFill(gl, painter, bucket, layerStyle, params, imageSprite, backgrou
 
             gl.uniform2f(painter.outlineShader.u_world, gl.drawingBufferWidth, gl.drawingBufferHeight);
             gl.uniform4fv(painter.outlineShader.u_color, layerStyle.stroke ? layerStyle.stroke : color);
+            gl.uniform1f(painter.outlineShader.u_z, layerStyle.z || 0);
 
             // Draw all buffers
             buffer = bucket.indices.fillBufferIndex;
@@ -141,6 +143,7 @@ function drawFill(gl, painter, bucket, layerStyle, params, imageSprite, backgrou
         // Draw filling rectangle.
         gl.switchShader(painter.fillShader, painter.tile.posMatrix, painter.tile.exMatrix);
         gl.uniform4fv(painter.fillShader.u_color, color);
+        gl.uniform1f(painter.fillShader.u_z, 0);
     }
 
     if (background) {
