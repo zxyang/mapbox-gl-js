@@ -18,7 +18,6 @@ module.exports = function drawLine(gl, painter, bucket, layerStyle, params, imag
 
         imageSprite.bind(gl, true);
 
-        //factor = Math.pow(2, 4 - painter.transform.tileZoom + params.z);
         gl.switchShader(painter.linepatternShader, painter.translatedMatrix || painter.tile.posMatrix, painter.tile.exMatrix);
         shader = painter.linepatternShader;
         gl.uniform2fv(painter.linepatternShader.u_pattern_size, [imagePos.size[0] * factor, imagePos.size[1] ]);
@@ -32,7 +31,8 @@ module.exports = function drawLine(gl, painter, bucket, layerStyle, params, imag
         shader = painter.lineShader;
     }
 
-    var tilePixelRatio = painter.transform.scale / (1 << params.z) / 8;
+    var zOffset = Math.log(params.tileSize / 256) / Math.LN2;
+    var tilePixelRatio = painter.transform.scale / (1 << (params.z + zOffset)) / 8;
     gl.uniform2fv(shader.u_linewidth, [ outset, inset ]);
     gl.uniform1f(shader.u_ratio, tilePixelRatio);
     gl.uniform1f(shader.u_gamma, window.devicePixelRatio);
