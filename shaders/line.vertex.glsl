@@ -23,18 +23,14 @@ uniform float u_ratio;
 uniform vec2 u_linewidth;
 uniform vec4 u_color;
 
-varying vec2 v_normal;
 varying float v_linesofar;
+varying vec2 v_extrude;
+varying float v_fadedist;
+varying float v_outerdist;
+
+uniform vec2 u_scale;
 
 void main() {
-    // We store the texture normals in the most insignificant bit
-    // transform y so that 0 => -1 and 1 => 1
-    // In the texture normal, x is 0 if the normal points straight up/down and 1 if it's a round cap
-    // y is 1 if the normal points up, and -1 if it points down
-    vec2 normal = mod(a_pos, 2.0);
-    normal.y = sign(normal.y - 0.5);
-    v_normal = normal;
-
     // Scale the extrusion vector down to a normal and then up by the line width
     // of this vertex.
     vec2 extrude = a_extrude / scale;
@@ -45,5 +41,47 @@ void main() {
     // because we're extruding the line in pixel space, regardless of the current
     // tile's zoom level.
     gl_Position = u_posmatrix * vec4(floor(a_pos / 2.0) + dist / u_ratio, 0.0, 1.0);
+
     v_linesofar = a_linesofar * u_ratio;
+
+    // Calculate fade edges for tilted
+    // TODO compact it. It could be written much more concisely but leaving
+    // it expanded until it is debugged and diagrammed.
+
+    vec2 scale = vec2(1.0, 0.20);
+    scale = u_scale;
+
+    // Theta is the angle between the extrude and normal
+    float cosTheta = 1.0 / length(extrude);
+    float sinTheta = sin(acos(cosTheta));
+
+    // matrices for rotating in both directions
+    mat2 r1 = mat2(cosTheta, -sinTheta, sinTheta, cosTheta);
+    mat2 r2 = mat2(cosTheta, sinTheta, -sinTheta, cosTheta);
+
+    // Calculate vectors of lines on either side
+    vec2 l1 = (r1 * extrude).yx * vec2(1.0, -1.0);
+    vec2 l2 = (r1 * extrude).yx * vec2(1.0, -1.0);
+
+    // squash the vectors
+    vec2 ex = extrude * scale * u_linewidth.s;
+    l1 *= scale;
+    l2 *= scale;
+
+    // flip back to get normals perpendicular to squashed line
+    vec2 n1 = l1.yx * vec2(-1.0, 1.0);
+    vec2 n2 = l2.yx * vec2(-1.0, 1.0);
+
+    // all we really want is the length of the normal
+    // we get this be projecting ex onto the unscaled normals
+    float len1 = dot(ex, n1) / length(n1);
+    float len2 = dot(ex, n2) / length(n2);
+    float fd1 = length(ex) / len1;
+    float fd2 = length(ex) / len2;
+
+    v_fadedist = max(fd1, fd2);
+    v_outerdist = length(ex);
+    v_extrude = ex;
+
+
 }

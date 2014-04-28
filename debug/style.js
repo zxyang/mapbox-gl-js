@@ -206,9 +206,11 @@ var style_json = {
         "name": "waterway",
         "bucket": "waterway",
     },
+    /*
     {
         "name": "roads",
         "layers": [
+        */
         {
             "name": "tunnel_large_casing",
             "bucket": "tunnel_large",
@@ -256,7 +258,7 @@ var style_json = {
         {
             "name": "tunnel_rail",
             "bucket": "tunnel_rail",
-        }]
+        //}]
     },
     {
         "name": "route",

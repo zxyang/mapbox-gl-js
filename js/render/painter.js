@@ -94,7 +94,7 @@ GLPainter.prototype.setup = function() {
 
     this.lineShader = gl.initializeShader('line',
         ['a_pos', 'a_extrude', 'a_linesofar'],
-        ['u_posmatrix', 'u_linewidth', 'u_color', 'u_debug', 'u_ratio', 'u_dasharray', 'u_gamma', 'u_blur']);
+        ['u_posmatrix', 'u_scale', 'u_linewidth', 'u_color', 'u_debug', 'u_ratio', 'u_dasharray', 'u_gamma', 'u_blur']);
 
     this.linepatternShader = gl.initializeShader('linepattern',
         ['a_pos', 'a_extrude', 'a_linesofar'],
@@ -319,7 +319,7 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
         }
 
         var type = bucket.info.type,
-            draw = type === 'text' ? drawText :
+            draw = type === 'atext' ? drawText :
                    type === 'fill' ? drawFill :
                    type === 'line' ? drawLine :
                    type === 'pointa' ? drawPoint :

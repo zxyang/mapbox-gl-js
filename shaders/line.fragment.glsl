@@ -9,20 +9,19 @@ uniform float u_blur;
 
 uniform vec2 u_dasharray;
 
-varying vec2 v_normal;
 varying float v_linesofar;
+
+varying vec2 v_extrude;
+varying float v_fadedist;
+varying float v_outerdist;
 
 void main() {
 
     // Calculate the distance of the pixel from the line in pixels.
-    float dist = length(v_normal);
-
-    dist *= u_linewidth.s;
-
-    // Calculate the antialiasing fade factor. This is either when fading in
-    // the line in case of an offset line (v_linewidth.t) or when fading out
-    // (v_linewidth.s)
-    float alpha = clamp((min(dist - (u_linewidth.t - u_blur), u_linewidth.s - dist) / u_blur) * u_gamma, 0.0, 1.0);
+    //float dist = length(v_normal);
+    float dist = length(v_extrude);
+    float alpha = clamp((v_outerdist - dist) / v_fadedist / 1.0, 0.0, 1.0);
+    alpha = max(alpha, 0.1);
 
     // Calculate the antialiasing fade factor based on distance to the dash.
     // Only affects alpha when line is dashed

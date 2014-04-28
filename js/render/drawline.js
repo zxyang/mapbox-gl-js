@@ -38,6 +38,22 @@ module.exports = function drawLine(gl, painter, bucket, layerStyle, params, imag
     gl.uniform1f(shader.u_gamma, window.devicePixelRatio);
     gl.uniform1f(shader.u_blur, layerStyle.blur === undefined ? 1 : layerStyle.blur);
 
+    // Calculate how much tiles get squished in their x, y directions
+    var tilt = Math.cos(painter.transform.tilt/180 * Math.PI);
+    var A = Math.cos(painter.transform.angle);
+    var B = Math.sin(-painter.transform.angle);
+    var c = Math.sqrt(A * A + Math.pow(B * tilt, 2));
+    var d = Math.sqrt(B * B + Math.pow(A * tilt, 2));
+    var a1 = Math.atan2(B, A * tilt);
+    var a2 = Math.atan2(A, B * tilt);
+    var inn = Math.PI - a1 - a2;
+    var s = [
+        Math.sin(inn) * c,
+        Math.sin(inn) * d
+    ];
+
+    gl.uniform2fv(shader.u_scale, s);
+
     var color = layerStyle.color;
 
     if (!params.antialiasing) {

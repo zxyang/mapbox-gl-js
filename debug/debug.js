@@ -34,8 +34,8 @@ function rerender() {
 function addColors(map, style) {
     var colors = gui.addFolder('Colors');
     var stylesheet = map.style.stylesheet;
-    colors.add(map.transform, 'altitude', 0, 5).name('Altitude').onChange(function() { map.resize(); rerender(); });
-    colors.add(map.transform, 'tilt', 0, 90).name('Tilt').onChange(function() { rerender(); });
+    colors.add(map.transform, 'altitude', 1, 15).name('Altitude').onChange(function() { map.resize(); rerender(); });
+    colors.add(map.transform, 'tilt', 0, 90).name('Tilt').onChange(function() { map.resize(); rerender(); });
     colors.add(stylesheet.constants, 'road_blur', 0, 50).name('Road Blur').onChange(rerender);
     colors.add(stylesheet.constants, 'stroke_width', 0, 1).name('Text Halo').onChange(rerender);
     colors.add(stylesheet.constants, 'satellite_brightness_low', 0, 1).name('Low').onChange(rerender);

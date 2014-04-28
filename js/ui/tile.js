@@ -44,6 +44,7 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
 
     // The extrusion matrix.
     this.exMatrix = mat4.clone(painter.projectionMatrix);
+    mat4.ortho(this.exMatrix, 0, transform.width, transform.height, 0, 0, -1);
     mat4.rotateZ(this.exMatrix, this.exMatrix, transform.angle);
 
     // 2x2 matrix for rotating points
