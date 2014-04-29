@@ -52,7 +52,7 @@ void main() {
     scale = u_scale;
 
     // Theta is the angle between the extrude and normal
-    float cosTheta = 1.0 / length(extrude);
+    float cosTheta = 1.0 / max(length(extrude), 1.0);
     float sinTheta = sin(acos(cosTheta));
 
     // matrices for rotating in both directions
@@ -61,7 +61,7 @@ void main() {
 
     // Calculate vectors of lines on either side
     vec2 l1 = (r1 * extrude).yx * vec2(1.0, -1.0);
-    vec2 l2 = (r1 * extrude).yx * vec2(1.0, -1.0);
+    vec2 l2 = (r2 * extrude).yx * vec2(1.0, -1.0);
 
     // squash the vectors
     vec2 ex = extrude * scale * u_linewidth.s;
@@ -82,6 +82,5 @@ void main() {
     v_fadedist = max(fd1, fd2);
     v_outerdist = length(ex);
     v_extrude = ex;
-
 
 }
