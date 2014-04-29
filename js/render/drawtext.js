@@ -6,9 +6,16 @@ module.exports = drawText;
 
 function drawText(gl, painter, bucket, layerStyle, params) {
 
-    var exMatrix = mat4.clone(painter.projectionMatrix);
+    var exMatrix;
     if (bucket.info.path == 'curve') {
-        mat4.rotateZ(exMatrix, exMatrix, painter.transform.angle);
+        // For labels following paths
+        exMatrix = mat4.clone(painter.tile.posMatrix);
+        var zOffset = Math.log(params.tileSize / 256) / Math.LN2;
+        var tilePixelRatio = painter.transform.scale / (1 << (params.z + zOffset)) / 8;
+        mat4.scale(exMatrix, exMatrix, [1/tilePixelRatio, 1/tilePixelRatio, 1]);
+    } else {
+        // For point labels
+        exMatrix = mat4.clone(painter.projectionMatrix);
     }
 
     var rotate = layerStyle.rotate || 0;
@@ -97,6 +104,7 @@ function drawText(gl, painter, bucket, layerStyle, params) {
 
     // Draw text first.
     gl.uniform4fv(shader.u_color, layerStyle.color);
+    gl.uniform1f(shader.u_z, layerStyle.z || 0);
     gl.uniform1f(shader.u_buffer, (256 - 64) / 256);
 
     var begin = bucket.indices.glyphVertexIndex,
