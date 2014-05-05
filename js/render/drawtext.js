@@ -1,6 +1,7 @@
 'use strict';
 
 var mat4 = require('../lib/glmatrix.js').mat4;
+var glmatrix = require('../lib/glmatrix.js');
 
 module.exports = drawText;
 
@@ -24,6 +25,14 @@ function drawText(gl, painter, bucket, layerStyle, params) {
     var fontSize = layerStyle.size || bucket.info.fontSize;
     mat4.scale(exMatrix, exMatrix, [ fontSize / 24, fontSize / 24, 1 ]);
 
+    // Calculate factor to fudge gamma by to account for perspective
+    var r = mat4.create();
+    mat4.rotateZ(r, r, -painter.transform.angle);
+    var up = [0, 512, 0, 0];
+    glmatrix.vec4.transformMat4(up, up, r);
+    glmatrix.vec4.transformMat4(up, up, exMatrix);
+    var squash = Math.sqrt(up[0] * up[0] + up[1] * up[1]);
+
     var shader = painter.sdfShader;
 
     gl.switchShader(shader, painter.translatedMatrix || painter.tile.posMatrix, exMatrix);
@@ -46,7 +55,7 @@ function drawText(gl, painter, bucket, layerStyle, params) {
     gl.vertexAttribPointer(shader.a_rangeend,     1, ubyte,    false, 16, 14);
     gl.vertexAttribPointer(shader.a_rangestart,   1, ubyte,    false, 16, 15);
 
-    gl.uniform1f(shader.u_gamma, params.antialiasing ? 2.5 / bucket.info.fontSize / window.devicePixelRatio : 0);
+    gl.uniform1f(shader.u_gamma, (params.antialiasing ? 2.5 / bucket.info.fontSize / window.devicePixelRatio : 0) / squash);
 
     // Convert the -pi..pi to an int8 range.
     var angle = Math.round((painter.transform.angle + rotate) / Math.PI * 128);

@@ -23,11 +23,13 @@ uniform float u_minfadezoom;
 uniform float u_maxfadezoom;
 uniform float u_fadezoom;
 uniform float u_z;
+uniform float u_gamma;
 
 uniform vec2 u_texsize;
 
 varying vec2 v_tex;
 varying float v_alpha;
+varying float v_gamma;
 
 void main() {
 
@@ -73,6 +75,9 @@ void main() {
     vec4 extrude = u_exmatrix * vec4(a_offset / 64.0, 0, 0);
     if (u_flip == 0.0) {
         extrude *= gl_Position.w;
+        v_gamma = u_gamma;
+    } else {
+        v_gamma = u_gamma * gl_Position.w;
     }
     gl_Position += extrude;
 
