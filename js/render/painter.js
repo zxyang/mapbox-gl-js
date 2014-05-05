@@ -127,7 +127,7 @@ GLPainter.prototype.setup = function() {
     );
 
     // The backgroundBuffer is used when drawing to the full *canvas*
-    var background = [ -32768, -32768, 32766, -32768, -32768, 32766, 32766, 32766 ];
+    var background = [ -1, -1, 1, -1, -1, 1, 1, 1 ];
     var backgroundArray = new Int16Array(background);
     this.backgroundBuffer = gl.createBuffer();
     this.bufferProperties.backgroundItemSize = 2;

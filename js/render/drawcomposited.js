@@ -1,5 +1,7 @@
 'use strict';
 
+var mat4 = require('../lib/glmatrix.js').mat4;
+
 module.exports = drawComposited;
 
 function drawComposited (gl, painter, buckets, layerStyle, params, style, layer) {
@@ -9,7 +11,7 @@ function drawComposited (gl, painter, buckets, layerStyle, params, style, layer)
     gl.disable(gl.STENCIL_TEST);
     gl.stencilMask(0x00);
 
-    gl.switchShader(painter.compositeShader, painter.projectionMatrix);
+    gl.switchShader(painter.compositeShader, mat4.create());
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(painter.compositeShader.u_image, 0);
