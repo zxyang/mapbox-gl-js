@@ -135,10 +135,10 @@ util.extend(Source.prototype, {
             tileCenter = Coordinate.zoomTo(tr.locationCoordinate(tr.center), z);
 
         var points = [
-            Coordinate.izoomTo(tr.pointCoordinate(tileCenter, {x: 0, y: 0}), z),
-            Coordinate.izoomTo(tr.pointCoordinate(tileCenter, {x: tr.width, y: 0}), z),
-            Coordinate.izoomTo(tr.pointCoordinate(tileCenter, {x: tr.width, y: tr.height}), z),
-            Coordinate.izoomTo(tr.pointCoordinate(tileCenter, {x: 0, y: tr.height}), z)
+            Coordinate.izoomTo(tr.pointCoordinate({x: 0, y: 0}), z),
+            Coordinate.izoomTo(tr.pointCoordinate({x: tr.width, y: 0}), z),
+            Coordinate.izoomTo(tr.pointCoordinate({x: tr.width, y: tr.height}), z),
+            Coordinate.izoomTo(tr.pointCoordinate({x: 0, y: tr.height}), z)
         ], t = {};
 
         // Divide the screen up in two triangles and scan each of them:

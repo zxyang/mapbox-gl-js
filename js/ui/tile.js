@@ -25,13 +25,11 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
     // TODO: remove
     this.scale = scale;
 
+    if (painter) painter.resize(painter.width, painter.height);
     // The position matrix
     // Use 64 bit floats to avoid precision issues.
     this.posMatrix = new Float64Array(16);
     mat4.identity(this.posMatrix);
-    mat4.rotateX(this.posMatrix, this.posMatrix, Math.PI / 180 * transform.tilt);
-    mat4.rotateZ(this.posMatrix, this.posMatrix, transform.angle);
-    mat4.translate(this.posMatrix, this.posMatrix, [-transform.x, -transform.y, 0]);
     mat4.translate(this.posMatrix, this.posMatrix, [scale * x, scale * y, 1]);
 
     // Create inverted matrix for interaction
@@ -43,7 +41,7 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
     mat4.multiply(this.posMatrix, painter.projectionMatrix, this.posMatrix);
 
     // The extrusion matrix.
-    this.exMatrix = mat4.clone(painter.projectionMatrix);
+    this.exMatrix = mat4.create();
     mat4.ortho(this.exMatrix, 0, transform.width, transform.height, 0, 0, -1);
     mat4.rotateZ(this.exMatrix, this.exMatrix, transform.angle);
 
@@ -54,8 +52,6 @@ Tile.calculateMatrices = function(z, x, y, transform, painter) {
     // Convert to 32-bit floats after we're done with all the transformations.
     this.posMatrix = new Float32Array(this.posMatrix);
     this.exMatrix = new Float32Array(this.exMatrix);
-
-    if (isNaN(this.posMatrix[0])) throw('adsf', arguments);
 
 };
 

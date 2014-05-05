@@ -39,19 +39,14 @@ function GLPainter(gl, transform) {
  * Update the GL viewport, projection matrix, and transforms to compensate
  * for a new width and height value.
  */
-GLPainter.prototype.resize = function(width, height) {
+GLPainter.prototype.resize = function() {
     var gl = this.gl;
 
     // Initialize projection matrix
-    this.projectionMatrix = mat4.create();
-    var altitude = this.transform.altitude;
-    mat4.perspective(this.projectionMatrix, 2 * Math.atan((height / 2) / altitude), width/height, 0, altitude + 1);
-    mat4.translate(this.projectionMatrix, this.projectionMatrix, [0, 0, -altitude]);
-    mat4.scale(this.projectionMatrix, this.projectionMatrix, [1, -1, 1/height]);
+    this.projectionMatrix = this.transform.getProjMatrix();
 
-    this.width = width * window.devicePixelRatio;
-    this.height = height * window.devicePixelRatio;
-    gl.viewport(0, 0, this.width, this.height);
+    gl.viewport(0, 0, this.transform.width * window.devicePixelRatio,
+            this.transform.height * window.devicePixelRatio);
 
     for (var i = this.renderTextures.length - 1; i >= 0; i--) {
         gl.deleteTexture(this.renderTextures.pop());
@@ -343,6 +338,7 @@ GLPainter.prototype.applyStyle = function(layer, style, buckets, params) {
 
 // Draws the color to the entire canvas
 GLPainter.prototype.drawBackground = function(color) {
+    if (true) return; // TODO fix
     var gl = this.gl;
 
     // Draw background.
