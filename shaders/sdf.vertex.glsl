@@ -68,7 +68,14 @@ void main() {
     // hide if (angle >= a_rangeend && angle < rangestart)
     z += step(a_rangeend, u_angle) * (1.0 - step(a_rangestart, u_angle));
 
-    gl_Position = u_posmatrix * vec4(a_pos, u_z, 1) + u_exmatrix * vec4(a_offset / 64.0, 0, 0);
+    gl_Position = u_posmatrix * vec4(a_pos, u_z, 1);
+
+    vec4 extrude = u_exmatrix * vec4(a_offset / 64.0, 0, 0);
+    if (u_flip == 0.0) {
+        extrude *= gl_Position.w;
+    }
+    gl_Position += extrude;
+
     gl_Position.z = (z + 1.0) * gl_Position.w;
     v_tex = a_tex * 4.0 / u_texsize;
 }

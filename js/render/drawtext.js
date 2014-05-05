@@ -9,13 +9,10 @@ function drawText(gl, painter, bucket, layerStyle, params) {
     var exMatrix;
     if (bucket.info.path == 'curve') {
         // For labels following paths
-        exMatrix = mat4.clone(painter.tile.posMatrix);
-        var zOffset = Math.log(params.tileSize / 256) / Math.LN2;
-        var tilePixelRatio = painter.transform.scale / (1 << (params.z + zOffset)) / 8;
-        mat4.scale(exMatrix, exMatrix, [1/tilePixelRatio, 1/tilePixelRatio, 1]);
+        exMatrix = mat4.clone(painter.projectionMatrix);
     } else {
         // For point labels
-        exMatrix = mat4.clone(painter.projectionMatrix);
+        exMatrix = mat4.clone(painter.tile.exMatrix);
     }
 
     var rotate = layerStyle.rotate || 0;
