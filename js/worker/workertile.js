@@ -162,6 +162,21 @@ function getType(feature) {
     return geometryTypeToName[feature._type];
 }
 
+
+// var glyphAtlas = this.painter.glyphAtlas;
+// var rects = {};
+// for (var name in params.faces) {
+//     var face = params.faces[name];
+//     rects[name] = {};
+
+//     for (var id in face.glyphs) {
+//         // TODO: use real value for the buffer
+//         rects[name][id] = glyphAtlas.addGlyph(params.id, name, face.glyphs[id], 3);
+//     }
+// }
+// callback(null, rects);
+
+
 /*
  * Given tile data, parse raw vertices and data, create a vector
  * tile and parse it into ready-to-render vertices.
