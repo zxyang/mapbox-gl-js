@@ -2,6 +2,6 @@
 
 var WorkerTile = require('./worker/workertile.js');
 
-exports.loadTile = function (url, id, zoom, tileSize, buckets, callback) {
-    new WorkerTile(url, id, zoom, tileSize, buckets, callback);
+exports.loadTile = window.loadTile = function (url, zoom, tileSize, buckets) {
+    new WorkerTile(url, zoom, tileSize, buckets);
 };

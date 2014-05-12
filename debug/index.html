@@ -4,9 +4,11 @@
 <meta charset='utf-8'>
 </head>
 <body>
-<script src='/dist/test.js'></script>
+<script src='../dist/test.js'></script>
+<script src='style-streets.js'></script>
 <script>
-	// TODO
+	loadTile('http://a.gl-api-us-east-1.tilestream.net/v3/mapbox.mapbox-streets-v4/14/4687/6266.gl.pbf',
+			14, 512, style.buckets);
 </script>
 </body>
 </html>
