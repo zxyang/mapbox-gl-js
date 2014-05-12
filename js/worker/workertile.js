@@ -13,7 +13,7 @@ var bucketFilter = require('../style/bucket-filter.js');
 //     self.console = require('./console.js');
 // }
 
-var actor = require('./worker.js');
+var actor; // = require('./worker.js');
 
 /*
  * Request a resources as an arraybuffer
@@ -45,8 +45,8 @@ function WorkerTile(url, id, zoom, tileSize, buckets, callback) {
     this.zoom = zoom;
     this.tileSize = tileSize;
 
-    for (var id in buckets) {
-        buckets[id].fn = bucketFilter(buckets[id], ['source', 'layer', 'feature_type']);
+    for (var bucketId in buckets) {
+        buckets[bucketId].fn = bucketFilter(buckets[bucketId], ['source', 'layer', 'feature_type']);
     }
 
     WorkerTile.loading[id] = loadBuffer(url, function(err, data) {
