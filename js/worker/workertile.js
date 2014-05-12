@@ -7,6 +7,7 @@ var Protobuf = require('pbf');
 var VectorTile = require('../format/vectortile.js');
 var VectorTileFeature = require('../format/vectortilefeature.js');
 var Placement = require('../text/placement.js');
+var bucketFilter = require('../style/bucket-filter.js');
 
 // if (typeof self.console === 'undefined') {
 //     self.console = require('./console.js');
@@ -36,19 +37,22 @@ function loadBuffer(url, callback) {
 }
 
 module.exports = WorkerTile;
-function WorkerTile(url, id, zoom, tileSize, callback) {
+
+function WorkerTile(url, id, zoom, tileSize, buckets, callback) {
     var tile = this;
     this.url = url;
     this.id = id;
     this.zoom = zoom;
     this.tileSize = tileSize;
 
+    for (var id in buckets) {
+        buckets[id].fn = bucketFilter(buckets[id], ['source', 'layer', 'feature_type']);
+    }
+
     WorkerTile.loading[id] = loadBuffer(url, function(err, data) {
-        delete WorkerTile.loading[id];
         if (err) {
             callback(err);
         } else {
-            WorkerTile.loaded[id] = tile;
             tile.data = new VectorTile(new Protobuf(new Uint8Array(data)));
             tile.parse(tile.data, callback);
         }
@@ -61,15 +65,6 @@ WorkerTile.cancel = function(id) {
         delete WorkerTile.loading[id];
     }
 };
-
-// Stores tiles that are currently loading.
-WorkerTile.loading = {};
-
-// Stores tiles that are currently loaded.
-WorkerTile.loaded = {};
-
-// Stores the style information.
-WorkerTile.buckets = {};
 
 /*
  * Sorts features in a layer into different buckets, according to the maping
@@ -186,7 +181,7 @@ function getType(feature) {
  */
 WorkerTile.prototype.parse = function(tile, callback) {
     var self = this;
-    var buckets = WorkerTile.buckets;
+    var buckets = this.buckets;
     var layers = {};
 
     this.geometry = new Geometry();
