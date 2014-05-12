@@ -218,6 +218,6 @@ WorkerTile.prototype.parse = function(tile) {
     for (var b in layers) bucketJSON[b] = layers[b].toJSON();
 
     // we don't need anything except featureTree at this point, so we mark it for GC
-    this.geometry = null;
-    this.placement = null;
+    // this.geometry = null;
+    // this.placement = null;
 };
