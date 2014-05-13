@@ -86,6 +86,7 @@ function sortFeaturesIntoBuckets(layer, mapping) {
 WorkerTile.prototype.parseBucket = function(bucket_name, features, info, faces, layer) {
     var geometry = this.geometry;
 
+    if (!info.text) return;
     var bucket = new Bucket(info, geometry, this.placement);
 
     bucket.start();
@@ -215,8 +216,8 @@ WorkerTile.prototype.parse = function(tile) {
     // var buffers = this.geometry.bufferList();
 
     // Convert buckets to a transferable format
-    var bucketJSON = {};
-    for (var b in layers) bucketJSON[b] = layers[b].toJSON();
+    // var bucketJSON = {};
+    // for (var b in layers) bucketJSON[b] = layers[b].toJSON();
 
     // we don't need anything except featureTree at this point, so we mark it for GC
     // this.geometry = null;
