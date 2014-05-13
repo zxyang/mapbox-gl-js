@@ -19,15 +19,18 @@ function drawTree(node, level, height) {
 
     var rect = [];
 
-    rect.push(level ? colors[(height - level - 1) % colors.length] : 'grey');
-    // rect.push(level ? 1 / level : 1);
-    rect.push(node.leaf ? 1 : 0.3);
-    rect.push(node.bbox);
+    if (node.leaf || !node.children) {
+        rect.push(level ? colors[(height - level + 2) % colors.length] : 'grey');
+        // rect.push(level ? 1 / level : 1);
+        rect.push(node.leaf ? 1 : 0.3);
+        rect.push(node.bbox || node);
 
-    rects.push(rect);
+        rects.push(rect);
+    }
 
-    if (node.leaf) return;
+    // if (node.leaf) return;
     // if (level === 6) { return; }
+    if (!node.children) return;
 
     for (var i = 0; i < node.children.length; i++) {
         drawTree(node.children[i], level + 1, height);
