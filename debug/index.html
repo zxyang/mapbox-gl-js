@@ -4,11 +4,19 @@
 <meta charset='utf-8'>
 </head>
 <body>
+<canvas id="canvas"></canvas>
 <script src='../dist/test.js'></script>
-<script src='style-streets.js'></script>
+<script src='style-bright.js'></script>
+<script src='viz.js'></script>
 <script>
-	loadTile('http://a.gl-api-us-east-1.tilestream.net/v3/mapbox.mapbox-streets-v4/14/4687/6266.gl.pbf',
-			14, 512, style.buckets);
+	loadTile(
+		'http://a.gl-api-us-east-1.tilestream.net/v3/mapbox.mapbox-streets-v4/14/4687/6266.gl.pbf',
+		14, 512, style.buckets,
+	function (tile) {
+		window.tile = tile;
+		console.log(tile);
+		draw(tile.placement.collision.cTree);
+	});
 </script>
 </body>
 </html>

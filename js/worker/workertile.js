@@ -27,7 +27,7 @@ function loadBuffer(url, callback) {
 
 module.exports = WorkerTile;
 
-function WorkerTile(url, zoom, tileSize, buckets) {
+function WorkerTile(url, zoom, tileSize, buckets, callback) {
     var tile = this;
     this.url = url;
     this.zoom = zoom;
@@ -45,6 +45,7 @@ function WorkerTile(url, zoom, tileSize, buckets) {
             console.time('parse');
             tile.parse(tile.data);
             console.timeEnd('parse');
+            callback(tile);
         }
     });
 }
