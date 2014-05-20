@@ -22,7 +22,7 @@ function drawTree(node, level, height) {
     if (node.leaf || !node.children) {
         rect.push(level ? colors[(height - level + 2) % colors.length] : 'grey');
         // rect.push(level ? 1 / level : 1);
-        rect.push(node.leaf ? 1 : 0.3);
+        rect.push(node.leaf ? 0.3 : 1);
         rect.push(node.children ? node.bbox : node);
 
         rects.push(rect);
