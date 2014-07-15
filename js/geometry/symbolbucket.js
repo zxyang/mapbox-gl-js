@@ -7,6 +7,7 @@ var Point = require('point-geometry');
 var resolveTokens = require('../util/token.js');
 var Placement = require('../text/placement.js');
 var Shaping = require('../text/shaping.js');
+var Collision = require('../text/collision.js');
 
 if (typeof self !== 'undefined') {
     var actor = require('../worker/worker.js');
@@ -21,7 +22,11 @@ var fullRange = [2 * Math.PI , 0];
 function SymbolBucket(info, buffers, collision, elementGroups) {
     this.info = info;
     this.buffers = buffers;
-    this.collision = collision;
+    if (info['symbol-collision'] === 'layer' && collision) {
+        this.collision = new Collision(collision.zoom, collision.tilePixelRatio, 1);
+    } else {
+        this.collision = collision;
+    }
 
     if (info['symbol-placement'] === 'line') {
         if (!info.hasOwnProperty('text-rotation-alignment')) {
