@@ -156,8 +156,12 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
                 glyphScale = blockedBy.length ? false : glyph.minScale;
                 for (k = 0, nextScale; k < blockedBy.length; k++) {
                     nextScale = blockedBy[k].getPlacementScale(glyph.boxes, glyph.minScale);
-                    if (!nextScale) break;
-                    glyphScale = Math.max(glyphScale, nextScale);
+                    if (!nextScale) {
+                        glyphScale = nextScale;
+                        break;
+                    } else {
+                        glyphScale = Math.max(glyphScale, nextScale);
+                    }
                 }
                 if (!glyphScale && !iconWithoutText) continue;
             }
@@ -167,8 +171,12 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
                 iconScale = blockedBy.length ? false : icon.minScale;
                 for (k = 0, nextScale; k < blockedBy.length; k++) {
                     nextScale = blockedBy[k].getPlacementScale(icon.boxes, icon.minScale);
-                    if (!nextScale) break;
-                    iconScale = Math.max(iconScale, nextScale);
+                    if (!nextScale) {
+                        iconScale = nextScale;
+                        break;
+                    } else {
+                        iconScale = Math.max(iconScale, nextScale);
+                    }
                 }
                 if (!iconScale && !textWithoutIcon) continue;
             }
