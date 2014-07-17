@@ -27,7 +27,7 @@ test('SymbolBucket', function(t) {
     var collision = collisiongroup.collisions.default;
     var bucket = new SymbolBucket(info, buffers, collisiongroup);
     t.ok(bucket);
-    bucket.data = { text_features: ['abcde'] };
+    bucket.textFeatures = ['abcde'];
 
     var atlas = new GlyphAtlas(1024,1024);
     var rects = {};
