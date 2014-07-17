@@ -3,7 +3,7 @@
 var FeatureTree = require('../geometry/featuretree.js');
 var Protobuf = require('pbf');
 var vt = require('vector-tile');
-var Collision = require('../text/collision.js');
+var CollisionGroup = require('../text/collisiongroup.js');
 var getArrayBuffer = require('../util/ajax.js').getArrayBuffer;
 
 var BufferSet = require('../geometry/bufferset.js');
@@ -67,7 +67,7 @@ WorkerTile.prototype.parse = function(data, actor, callback) {
     this.callback = callback;
 
     var tileExtent = 4096;
-    this.collision = new Collision(this.zoom, tileExtent, this.tileSize);
+    this.collision = new CollisionGroup(this.zoom, tileExtent, this.tileSize);
     this.featureTree = new FeatureTree(getGeometry, getType);
 
     var buckets = this.buckets = sortTileIntoBuckets(this, data, bucketInfo);

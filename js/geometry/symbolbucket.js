@@ -9,20 +9,18 @@ var Placement = require('../text/placement.js');
 var Shaping = require('../text/shaping.js');
 var Loader = require('../text/loader.js');
 var getRanges = require('../text/ranges.js');
-var Collision = require('../text/collision.js');
 
 module.exports = SymbolBucket;
 
 var fullRange = [2 * Math.PI , 0];
 
-function SymbolBucket(info, buffers, collision, elementGroups) {
+function SymbolBucket(info, buffers, collisionGroup, elementGroups) {
     this.info = info;
     this.buffers = buffers;
-    if (info['symbol-collision'] === 'layer' && collision) {
-        this.collision = new Collision(collision.zoom, collision.tilePixelRatio, 1);
-    } else {
-        this.collision = collision;
-    }
+
+    this.blocks = collisionGroup && collisionGroup.group(info['symbol-placement-blocks'] || ['default']);
+    this.blockedBy = collisionGroup && collisionGroup.group(info['symbol-placement-blocked-by'] || ['default']);
+    this.collisionGroup = collisionGroup;
 
     if (info['symbol-placement'] === 'line') {
         if (!info.hasOwnProperty('text-rotation-alignment')) {
@@ -103,7 +101,9 @@ function byScale(a, b) {
 
 SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
     var info = this.info;
-    var collision = this.collision;
+    var collisionGroup = this.collisionGroup;
+    var blockedBy = this.blockedBy;
+    var blocks = this.blocks;
 
     var minScale = 0.5;
     var glyphSize = 24;
@@ -111,8 +111,8 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
     var horizontalText = info['text-rotation-alignment'] === 'viewport',
         horizontalIcon = info['icon-rotation-alignment'] === 'viewport',
         fontScale = info['text-max-size'] / glyphSize,
-        textBoxScale = collision.tilePixelRatio * fontScale,
-        iconBoxScale = collision.tilePixelRatio * info['icon-max-size'],
+        textBoxScale = collisionGroup.tilePixelRatio * fontScale,
+        iconBoxScale = collisionGroup.tilePixelRatio * info['icon-max-size'],
         iconWithoutText = info['text-optional'] || !shaping,
         textWithoutIcon = info['icon-optional'] || !image;
 
@@ -147,18 +147,29 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
             var icon;
             var glyphScale = null;
             var iconScale = null;
+            var nextScale = null;
+            var nextRange = null;
+            var k;
 
             if (shaping) {
                 glyph = Placement.getGlyphs(anchor, origin, shaping, faces, textBoxScale, horizontalText, line, info);
-                glyphScale = info['text-allow-overlap'] ? glyph.minScale
-                    : collision.getPlacementScale(glyph.boxes, glyph.minScale);
+                glyphScale = blockedBy.length ? false : glyph.minScale;
+                for (k = 0, nextScale; k < blockedBy.length; k++) {
+                    nextScale = blockedBy[k].getPlacementScale(glyph.boxes, glyph.minScale);
+                    if (!nextScale) break;
+                    glyphScale = Math.max(glyphScale, nextScale);
+                }
                 if (!glyphScale && !iconWithoutText) continue;
             }
 
             if (image) {
                 icon = Placement.getIcon(anchor, image, iconBoxScale, line, info);
-                iconScale = info['icon-allow-overlap'] ? icon.minScale
-                    : collision.getPlacementScale(icon.boxes, icon.minScale);
+                iconScale = blockedBy.length ? false : icon.minScale;
+                for (k = 0, nextScale; k < blockedBy.length; k++) {
+                    nextScale = blockedBy[k].getPlacementScale(icon.boxes, icon.minScale);
+                    if (!nextScale) break;
+                    iconScale = Math.max(iconScale, nextScale);
+                }
                 if (!iconScale && !textWithoutIcon) continue;
             }
 
@@ -171,10 +182,28 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
             }
 
             // Get the rotation ranges it is safe to show the glyphs
-            var glyphRange = (!glyphScale || info['text-allow-overlap']) ? fullRange
-                : collision.getPlacementRange(glyph.boxes, glyphScale, horizontalText);
-            var iconRange = (!iconScale || info['icon-allow-overlap']) ? fullRange
-                : collision.getPlacementRange(icon.boxes, iconScale, horizontalIcon);
+            var glyphRange;
+            if (!glyphScale || !blockedBy.length) {
+                glyphRange = fullRange;
+            } else {
+                for (k = 0; k < blockedBy.length; k++) {
+                    nextRange = blockedBy[k].getPlacementRange(glyph.boxes, glyphScale, horizontalText);
+                    glyphRange = glyphRange || nextRange;
+                    glyphRange[0] = Math.max(glyphRange[0], nextRange[0]);
+                    glyphRange[1] = Math.min(glyphRange[1], nextRange[1]);
+                }
+            }
+            var iconRange;
+            if (!iconScale || !blockedBy.length) {
+                iconRange = fullRange;
+            } else {
+                for (k = 0; k < blockedBy.length; k++) {
+                    nextRange = blockedBy[k].getPlacementRange(icon.boxes, iconScale, horizontalIcon);
+                    iconRange = iconRange || nextRange;
+                    iconRange[0] = Math.max(iconRange[0], nextRange[0]);
+                    iconRange[1] = Math.min(iconRange[1], nextRange[1]);
+                }
+            }
 
             var maxRange = [
                 Math.min(iconRange[0], glyphRange[0]),
@@ -190,15 +219,15 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
 
             // Insert final placement into collision tree and add glyphs/icons to buffers
             if (glyphScale) {
-                if (!info['text-ignore-placement']) {
-                    collision.insert(glyph.boxes, anchor, glyphScale, glyphRange, horizontalText);
+                for (k = 0; k < blocks.length; k++) {
+                    blocks[k].insert(glyph.boxes, anchor, glyphScale, glyphRange, horizontalText);
                 }
                 this.addSymbols(this.buffers.glyphVertex, this.elementGroups.text, glyph.shapes, glyphScale, glyphRange);
             }
 
             if (iconScale) {
-                if (!info['icon-ignore-placement']) {
-                    collision.insert(icon.boxes, anchor, iconScale, iconRange, horizontalIcon);
+                for (k = 0; k < blocks.length; k++) {
+                    blocks[k].insert(icon.boxes, anchor, iconScale, iconRange, horizontalIcon);
                 }
                 this.addSymbols(this.buffers.iconVertex, this.elementGroups.icon, icon.shapes, iconScale, iconRange);
             }
@@ -209,7 +238,7 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
 
 SymbolBucket.prototype.addSymbols = function(buffer, elementGroups, symbols, scale, placementRange) {
 
-    var zoom = this.collision.zoom;
+    var zoom = this.collisionGroup.zoom;
 
     elementGroups.makeRoomFor(0);
     var elementGroup = elementGroups.current;

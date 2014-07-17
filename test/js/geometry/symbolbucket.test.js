@@ -8,7 +8,7 @@ var VectorTile = require('vector-tile').VectorTile;
 var SymbolBucket = require('../../../js/geometry/symbolbucket.js');
 var GlyphVertexBuffer = require('../../../js/geometry/glyphvertexbuffer.js');
 var IconVertexBuffer = require('../../../js/geometry/iconvertexbuffer.js');
-var Collision = require('../../../js/text/collision.js');
+var CollisionGroup = require('../../../js/text/collisiongroup.js');
 var GlyphAtlas = require('../../../js/text/glyphatlas');
 var RenderProperties = require('../../../js/style/renderproperties.js');
 
@@ -23,8 +23,9 @@ test('SymbolBucket', function(t) {
         glyphVertex: new GlyphVertexBuffer(),
         iconVertex: new IconVertexBuffer()
     };
-    var collision = new Collision(6, 4096, 512);
-    var bucket = new SymbolBucket(info, buffers, collision);
+    var collisiongroup = new CollisionGroup(6, 4096, 512);
+    var collision = collisiongroup.collisions.default;
+    var bucket = new SymbolBucket(info, buffers, collisiongroup);
     t.ok(bucket);
     bucket.data = { text_features: ['abcde'] };
 
