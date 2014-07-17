@@ -7,13 +7,13 @@ var Point = require('point-geometry');
 var resolveTokens = require('../util/token.js');
 var Placement = require('../text/placement.js');
 var Shaping = require('../text/shaping.js');
-var Loader = require('../text/loader.js');
-var getRanges = require('../text/ranges.js');
 var Collision = require('../text/collision.js');
+var resolveText = require('../text/resolvetext.js');
 
 module.exports = SymbolBucket;
 
 var fullRange = [2 * Math.PI , 0];
+var stacks = {};
 
 function SymbolBucket(info, buffers, collision, elementGroups) {
     this.info = info;
@@ -46,7 +46,7 @@ function SymbolBucket(info, buffers, collision, elementGroups) {
 SymbolBucket.prototype.addFeatures = function() {
     var info = this.info;
     var features = this.features;
-    var text_features = this.data.text_features;
+    var textFeatures = this.textFeatures;
 
     var horizontalAlign = 0.5;
     if (info['text-horizontal-align'] === 'right') horizontalAlign = 1;
@@ -70,7 +70,7 @@ SymbolBucket.prototype.addFeatures = function() {
     for (var k = 0; k < features.length; k++) {
 
         var feature = features[k];
-        var text = text_features[k];
+        var text = textFeatures[k];
         var lines = feature.loadGeometry();
 
         var shaping = false;
@@ -278,43 +278,36 @@ SymbolBucket.prototype.getIconDependencies = function(tile, actor, callback) {
 SymbolBucket.prototype.getTextDependencies = function(tile, actor, callback) {
     var features = this.features;
     var info = this.info;
-    var fontstack = info['text-font'];
-    var data = getRanges(features, info);
-    var ranges = data.ranges;
-    var codepoints = data.codepoints;
 
-    var bucket = this;
-    this.data = data;
+    var fontstack = info['text-font'];
+    if (stacks[fontstack] === undefined) {
+        stacks[fontstack] = { glyphs: {}, rects: {} };
+    }
+    var stack = stacks[fontstack];
+    this.stacks = stacks;
+
+    var data = resolveText(features, info, stack.glyphs);
+    this.textFeatures = data.textFeatures;
     
-    Loader.whenLoaded(tile, fontstack, ranges, actor, function(err) {
+    actor.send('get glyphs', {
+        id: tile.id,
+        fontstack: fontstack,
+        codepoints: data.codepoints
+    }, function(err, newstack) {
         if (err) return callback(err);
 
-        var stacks = {};
-        stacks[fontstack] = {};
-        stacks[fontstack].glyphs = codepoints.reduce(function(obj, codepoint) {
-            obj[codepoint] = Loader.stacks[fontstack].glyphs[codepoint];
-            return obj;
-        }, {});
+        var newglyphs = newstack.glyphs;
+        var newrects = newstack.rects;
+        var glyphs = stack.glyphs;
+        var rects = stack.rects;
 
-        bucket.stacks = stacks;
+        for (var codepoint in newglyphs) {
+            glyphs[codepoint] = newglyphs[codepoint];
+            rects[codepoint] = newrects[codepoint];
+        }
 
-        actor.send('add glyphs', {
-            id: tile.id,
-            stacks: stacks
-        }, function(err, rects) {
-
-            if (err) return callback(err);
-
-            // Merge the rectangles of the glyph positions into the face object
-            for (var name in rects) {
-                if (!stacks[name]) stacks[name] = {};
-                stacks[name].rects = rects[name];
-            }
-
-            callback();
-        });
+        callback();
     });
-
 };
 
 SymbolBucket.prototype.hasData = function() {
