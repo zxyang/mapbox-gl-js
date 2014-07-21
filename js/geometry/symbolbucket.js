@@ -64,6 +64,26 @@ SymbolBucket.prototype.addFeatures = function() {
     var fontstack = info['text-font'];
     var textOffset = [info['text-offset'][0] * oneEm, info['text-offset'][1] * oneEm];
 
+    var sort = info['symbol-sort'];
+    if (sort) {
+        var field = sort.field;
+        var order = sort.order;
+        features.sort(function(a, b) {
+            var propA = a.properties[field];
+            var indexA = order.indexOf(propA);
+            if (indexA < 0) indexA = Infinity;
+            var propB = b.properties[field];
+            var indexB = order.indexOf(propB);
+            if (indexB < 0) indexB = Infinity;
+            var diff = indexA - indexB;
+            if (!diff) {
+                return propA < propB;
+            } else {
+                return diff;
+            }
+        });
+    }
+
     for (var k = 0; k < features.length; k++) {
 
         var feature = features[k];
