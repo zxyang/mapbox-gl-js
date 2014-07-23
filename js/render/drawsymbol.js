@@ -99,11 +99,9 @@ function drawSymbol(gl, painter, bucket, layerStyle, posMatrix, params, imageSpr
     gl.uniform1f(shader.u_angle, (angle + 256) % 256);
     gl.uniform1f(shader.u_zoom, (painter.transform.zoom - zoomAdjust) * 10); // current zoom level
 
-    var f = painter.frameHistory.getFadeProperties(300);
-    gl.uniform1f(shader.u_fadedist, f.fadedist * 10);
-    gl.uniform1f(shader.u_minfadezoom, Math.floor(f.minfadezoom * 10));
-    gl.uniform1f(shader.u_maxfadezoom, Math.floor(f.maxfadezoom * 10));
-    gl.uniform1f(shader.u_fadezoom, (painter.transform.zoom + f.bump) * 10);
+    gl.activeTexture(gl.TEXTURE1);
+    painter.frameHistory.bind(gl);
+    gl.uniform1i(shader.u_fadetexture, 1);
 
     var sdfFontSize = text ? 24 : 1;
     var sdfPx = 8;

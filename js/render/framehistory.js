@@ -3,67 +3,55 @@
 module.exports = FrameHistory;
 
 function FrameHistory() {
+    this.array = new Uint8Array(256);
+    this.times = new Uint32Array(256);
+    this.startTime = new Date().getTime();
+    this.previousZoom = 0;
 }
 
-FrameHistory.prototype.getFadeProperties = function(duration) {
-    if (duration === undefined) duration = 300;
-    var currentTime = (new Date()).getTime();
-
-    // Remove frames until only one is outside the duration, or until there are only three
-    while (frameHistory.length > 3 && frameHistory[1].time + duration < currentTime) {
-        frameHistory.shift();
-    }
-
-    if (frameHistory[1].time + duration < currentTime) {
-        frameHistory[0].z = frameHistory[1].z;
-    }
-
-    var frameLen = frameHistory.length;
-    if (frameLen < 3) console.warn('there should never be less than three frames in the history');
-
-    // Find the range of zoom levels we want to fade between
-    var startingZ = frameHistory[0].z,
-        lastFrame = frameHistory[frameLen - 1],
-        endingZ = lastFrame.z,
-        lowZ = Math.min(startingZ, endingZ),
-        highZ = Math.max(startingZ, endingZ);
-
-    // Calculate the speed of zooming, and how far it would zoom in terms of zoom levels in one duration
-    var zoomDiff = lastFrame.z - frameHistory[1].z,
-        timeDiff = lastFrame.time - frameHistory[1].time;
-    var fadedist = zoomDiff / (timeDiff / duration);
-
-    if (isNaN(fadedist)) console.warn('fadedist should never be NaN');
-
-    // At end of a zoom when the zoom stops changing continue pretending to zoom at that speed
-    // bump is how much farther it would have been if it had continued zooming at the same rate
-    var bump = (currentTime - lastFrame.time) / duration * fadedist;
-
-    return {
-        fadedist: fadedist,
-        minfadezoom: lowZ,
-        maxfadezoom: highZ,
-        bump: bump
-    };
-};
-
-// Store previous render times
-var frameHistory = [];
-
-// Record frame history that will be used to calculate fading params
 FrameHistory.prototype.record = function(zoom) {
-    var currentTime = (new Date()).getTime();
+    zoom = Math.floor(zoom * 10);
+    var now = new Date().getTime() - this.startTime;
 
-    // first frame ever
-    if (!frameHistory.length) {
-        frameHistory.push({time: 0, z: zoom }, {time: 0, z: zoom });
+    var z;
+    if (zoom < this.previousZoom) {
+        for (z = zoom + 1; z <= this.previousZoom; z++) {
+            this.times[z] = now;
+        }
+    } else {
+        for (z = zoom; z > this.previousZoom; z--) {
+            this.times[z] = now;
+        }
     }
 
-    if (frameHistory.length === 2 || frameHistory[frameHistory.length - 1].z !== zoom) {
-        frameHistory.push({
-            time: currentTime,
-            z: zoom
-        });
+    for (z = 0; z < 256; z++) {
+        var timeSince = Math.min(255, (now - this.times[z]));
+        if (z <= zoom) {
+            this.array[z] = timeSince;
+        } else {
+            this.array[z] = 255 - timeSince;
+        }
     }
+
+    this.changed = true;
+    this.previousZoom = zoom;
 };
 
+FrameHistory.prototype.bind = function(gl) {
+    if (!this.texture) {
+        this.texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, 256, 1, 0, gl.ALPHA, gl.UNSIGNED_BYTE, this.array);
+
+    } else {
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        if (this.changed) {
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 256, 1, gl.ALPHA, gl.UNSIGNED_BYTE, this.array);
+            this.changed = false;
+        }
+    }
+};

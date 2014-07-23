@@ -16,10 +16,7 @@ uniform mat4 u_exmatrix;
 uniform float u_angle;
 uniform float u_zoom;
 uniform float u_flip;
-uniform float u_fadedist;
-uniform float u_minfadezoom;
-uniform float u_maxfadezoom;
-uniform float u_fadezoom;
+uniform sampler2D u_fadetexture;
 
 uniform vec2 u_texsize;
 
@@ -43,20 +40,7 @@ void main() {
     // u_zoom is the current zoom level adjusted for the change in font size
     float z = 2.0 - step(a_minzoom, u_zoom) - (1.0 - step(a_maxzoom, u_zoom)) + rev;
 
-    // fade out labels
-    float alpha = clamp((u_fadezoom - a_labelminzoom) / u_fadedist, 0.0, 1.0);
-
-    if (u_fadedist >= 0.0) {
-        v_alpha = alpha;
-    } else {
-        v_alpha = 1.0 - alpha;
-    }
-    if (u_maxfadezoom < a_labelminzoom) {
-        v_alpha = 0.0;
-    }
-    if (u_minfadezoom >= a_labelminzoom) {
-        v_alpha = 1.0;
-    }
+    v_alpha = texture2D(u_fadetexture, vec2(a_labelminzoom / 256.0, 0.0)).a;
 
     // if label has been faded out, clip it
     z += step(v_alpha, 0.0);
