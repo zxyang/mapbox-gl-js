@@ -476,7 +476,8 @@ var sources = {
     vector: Source,
     raster: Source,
     geojson: require('./geojsonsource'),
-    video: require('./videosource')
+    video: require('./videosource'),
+    image: require('./imagesource')
 };
 
 Source.create = function(source) {
