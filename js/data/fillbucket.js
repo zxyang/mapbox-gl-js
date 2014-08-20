@@ -1,9 +1,7 @@
 'use strict';
 
 var ElementGroups = require('./elementgroups.js');
-var libtess = require('libtess');
-
-var tesselator = initTesselator();
+var seidel = require('seidel');
 
 
 module.exports = FillBucket;
@@ -18,35 +16,53 @@ FillBucket.prototype.addFeatures = function() {
     var features = this.features;
     var fillVertex = this.buffers.fillVertex;
     var fillElement = this.buffers.fillElement;
-    tesselator.gluTessCallback(libtess.gluEnum.GLU_TESS_VERTEX_DATA, addVertex);
 
     var n = 0;
     var elementGroups = this.elementGroups;
 
-    //var start = self.performance.now();
-    
     features = features.reverse();
+
+    function pointToString(a) { return '[' + a[0] + ',' + a[1] + ']'; }
+    function ringsToString(a) { return '[' + a.map(pointToString).join(',') + ']'; }
+    function stringifyData(a) { return '[' + a.map(ringsToString) + ']'; }
+
+    var start = self.performance.now();
 
     var elementGroup;
     for (var i = 0; i < features.length; i++) {
         var feature = features[i];
         var lines = feature.loadGeometry();
 
-        tesselator.gluTessBeginPolygon();
-        for (var k = 0; k < lines.length; k++) {
-            var vertices = lines[0];
+        var data = [];
 
-            tesselator.gluTessBeginContour();
+        // console.log('feature');
+
+        for (var k = 0; k < lines.length; k++) {
+            var vertices = lines[k];
+
+            var contour = [];
             for (var m = 0; m < vertices.length; m++) {
-                var coords = [vertices[m].x, vertices[m].y, 0];
-                tesselator.gluTessVertex(coords, coords);
+                var x = vertices[m].x,
+                    y = vertices[m].y;
+                if (!m || vertices[m - 1].x !== x || vertices[m - 1].y !== y) contour.push([x, y]);
             }
-            tesselator.gluTessEndContour();
+            contour.pop();
+            data.push(contour);
         }
-        tesselator.gluTessEndPolygon();
+
+        var triangles = seidel(data);
+        // if (!triangles) console.log('empty ' + stringifyData(data));
+
+        for (k = 0; triangles && k < triangles.length; k++) {
+            addVertex(triangles[k][0]);
+            addVertex(triangles[k][1]);
+            addVertex(triangles[k][2]);
+        }
     }
 
-    //console.log(this.name + '\t polygons: ' + i + ', ms: ' + Math.round(self.performance.now() - start));
+    self.tesselateTime = self.tesselateTime || 0;
+    self.tesselateTime += self.performance.now() - start;
+    console.log(Math.round(self.tesselateTime) + ' ms');
 
     function addVertex(data) {
         if (n % 3 === 0) {
@@ -54,7 +70,7 @@ FillBucket.prototype.addFeatures = function() {
             elementGroup = elementGroups.current;
         }
         var index = fillVertex.index - elementGroup.vertexStartIndex;
-        fillVertex.add(data[0], data[1]);
+        fillVertex.add(data.x, data.y);
         fillElement.add(index);
         elementGroup.elementLength++;
         n++;
@@ -64,11 +80,3 @@ FillBucket.prototype.addFeatures = function() {
 FillBucket.prototype.hasData = function() {
     return !!this.elementGroups.current;
 };
-
-function initTesselator() {
-    var tesselator = new libtess.GluTesselator();
-    tesselator.gluTessCallback(libtess.gluEnum.GLU_TESS_COMBINE, function(coords) { return coords; });
-    tesselator.gluTessCallback(libtess.gluEnum.GLU_TESS_EDGE_FLAG, function() {});
-    tesselator.gluTessNormal(0, 0, 1);
-    return tesselator;
-}
