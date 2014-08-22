@@ -20,8 +20,6 @@ FillBucket.prototype.addFeatures = function() {
     var n = 0;
     var elementGroups = this.elementGroups;
 
-    features = features.reverse();
-
     function pointToString(a) { return '[' + a[0] + ',' + a[1] + ']'; }
     function ringsToString(a) { return '[' + a.map(pointToString).join(',') + ']'; }
     function stringifyData(a) { return '[' + a.map(ringsToString) + ']'; }
@@ -29,7 +27,7 @@ FillBucket.prototype.addFeatures = function() {
     var start = self.performance.now();
 
     var elementGroup;
-    for (var i = 0; i < features.length; i++) {
+    for (var i = features.length - 1; i >= 0; i--) {
         var feature = features[i];
         var lines = feature.loadGeometry();
 
@@ -41,12 +39,11 @@ FillBucket.prototype.addFeatures = function() {
             var vertices = lines[k];
 
             var contour = [];
-            for (var m = 0; m < vertices.length; m++) {
+            for (var m = 1; m < vertices.length; m++) {
                 var x = vertices[m].x,
                     y = vertices[m].y;
-                if (!m || vertices[m - 1].x !== x || vertices[m - 1].y !== y) contour.push([x, y]);
+                if (vertices[m - 1].x !== x || vertices[m - 1].y !== y) contour.push([x, y]);
             }
-            contour.pop();
             data.push(contour);
         }
 
