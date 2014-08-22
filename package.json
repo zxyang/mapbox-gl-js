@@ -7,7 +7,7 @@
   "dependencies": {
     "csscolorparser": "~1.0.2",
     "geojson-rewind": "~0.1.0",
-    "libtess": "^1.0.2",
+    "seidel": "^0.2.4",
     "mapbox-gl-style-spec": "git+https://github.com/mapbox/mapbox-gl-style-spec.git#mb-pages",
     "pbf": "~0.0.2",
     "pngjs": "^0.4.0",
