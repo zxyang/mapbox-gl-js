@@ -313,6 +313,38 @@ test('Map', function(t) {
             t.end();
         });
 
+        t.test('zooms with specified offset', function(t) {
+            var map = createMap();
+            map.easeTo(undefined, 3.2, undefined, { offset: [100, 0], duration: 0 });
+            t.equal(map.getZoom(), 3.2);
+            t.deepEqual(map.getCenter(), { lat: 0, lng: 62.66117668978015 });
+            t.end();
+        });
+
+        t.test('zooms with specified offset relative to viewport on a rotated map', function(t) {
+            var map = createMap({bearing: 180});
+            map.easeTo(undefined, 3.2, undefined, { offset: [100, 0], duration: 0 });
+            t.equal(map.getZoom(), 3.2);
+            t.deepEqual(map.getCenter(), { lat: 0, lng: -62.66117668978012 });
+            t.end();
+        });
+
+        t.test('rotates with specified offset', function(t) {
+            var map = createMap();
+            map.easeTo(undefined, undefined, 90, { offset: [100, 0], duration: 0 });
+            t.equal(map.getBearing(), 90);
+            t.deepEqual(map.getCenter(), { lat: 57.32652122521708, lng: 70.3125 });
+            t.end();
+        });
+
+        t.test('rotates with specified offset relative to viewport on a rotated map', function(t) {
+            var map = createMap({bearing: 180});
+            map.easeTo(undefined, undefined, 90, { offset: [100, 0], duration: 0 });
+            t.equal(map.getBearing(), 90);
+            t.deepEqual(map.getCenter(), { lat: 57.32652122521708, lng: -70.31250000000001 });
+            t.end();
+        });
+
         t.test('emits move events', function(t) {
             var map = createMap();
             var started;
