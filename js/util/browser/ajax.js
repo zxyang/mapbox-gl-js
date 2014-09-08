@@ -34,7 +34,7 @@ exports.getArrayBuffer = function(url, callback) {
 
 exports.getImage = function(url, callback) {
     var img = new Image();
-    img.crossOrigin = 'Anonymous';
+    img.crossOrigin = 'anonymous';
     img.onload = function() {
         callback(null, img);
     };
