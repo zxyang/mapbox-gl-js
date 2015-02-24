@@ -12,6 +12,7 @@ var resolveIcons = require('../symbol/resolve_icons');
 var mergeLines = require('../symbol/mergelines');
 
 var PlacementFeature = require('../placement/placement_feature');
+var PlacementLayer = require('../placement/placement_layer');
 
 module.exports = SymbolBucket;
 
@@ -254,6 +255,8 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
 SymbolBucket.prototype.placeFeatures = function(buffers) {
 
     this.buffers = buffers;
+    this.iconLayer = new PlacementLayer();
+    this.textLayer = new PlacementLayer();
 
     this.elementGroups = {
         text: new ElementGroups(buffers.glyphVertex),
@@ -309,31 +312,44 @@ SymbolBucket.prototype.placeFeatures = function(buffers) {
             if (!layoutProperties['text-ignore-placement']) {
                 placement.insertFeature(text, glyphScale);
             }
-            if (inside) this.addSymbols(this.buffers.glyphVertex, this.elementGroups.text, text.glyph, glyphScale);
+            if (inside && glyphScale <= this.placement.maxScale) {
+                this.addSymbols(this.buffers.glyphVertex, this.buffers.glyphFade, this.elementGroups.text, text.glyph, glyphScale, text);
+                this.textLayer.add(text);
+            }
         }
 
         if (iconScale) {
             if (!layoutProperties['icon-ignore-placement']) {
                 placement.insertFeature(icon, iconScale);
             }
-            if (inside) this.addSymbols(this.buffers.iconVertex, this.elementGroups.icon, icon.icon.shapes, iconScale);
+            if (inside && iconScale <= this.placement.maxScale) {
+                this.addSymbols(this.buffers.iconVertex, this.buffers.iconFade, this.elementGroups.icon, icon.icon.shapes, iconScale, icon);
+                this.iconLayer.add(icon);
+            }
         }
 
     }
 
     this.addToDebugBuffers();
+
+    this.symbolFadeBuffers = {
+        icon: this.iconLayer.getArrayBuffer(),
+        text: this.textLayer.getArrayBuffer()
+    };
 };
 
-SymbolBucket.prototype.addSymbols = function(buffer, elementGroups, symbols, scale) {
-
-    if (scale > this.placement.maxScale) return;
+SymbolBucket.prototype.addSymbols = function(buffer, fadeBuffer, elementGroups, symbols, scale, placementFeature) {
 
     var zoom = this.placement.zoom;
 
     elementGroups.makeRoomFor(0);
     var elementGroup = elementGroups.current;
-
     var placementZoom = Math.log(scale) / Math.LN2 + zoom;
+
+    placementFeature.elementGroup = elementGroups.groups.length - 1;
+    placementFeature.vertexOffset = elementGroup.vertexLength + elementGroup.vertexStartIndex;
+    placementFeature.placementZoom = placementZoom;
+    placementFeature.vertexLength = 0;
 
     for (var k = 0; k < symbols.length; k++) {
 
@@ -365,7 +381,12 @@ SymbolBucket.prototype.addSymbols = function(buffer, elementGroups, symbols, sca
         buffer.add(anchor.x, anchor.y, bl.x, bl.y, tex.x, tex.y + tex.h, angle, minZoom, maxZoom, placementZoom);
         buffer.add(anchor.x, anchor.y, br.x, br.y, tex.x + tex.w, tex.y + tex.h, angle, minZoom, maxZoom, placementZoom);
 
+        for (var i = 0; i < 6; i++) {
+            fadeBuffer.add(Math.max(0, Math.min(25, placementZoom)) * 10, 0, 0);
+        }
+
         elementGroup.vertexLength += 6;
+        placementFeature.vertexLength += 6;
     }
 
 };

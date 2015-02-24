@@ -8,6 +8,8 @@ var OutlineElementBuffer = require('./outline_elements_buffer');
 var GlyphVertexBuffer = require('./glyph_vertex_buffer');
 var IconVertexBuffer = require('./icon_vertex_buffer');
 var PlacementBoxVertexBuffer = require('./placement_box_vertex_buffer');
+var GlyphFadeBuffer = require('./symbol_fade_buffer');
+var IconFadeBuffer = require('./symbol_fade_buffer');
 
 module.exports = function(bufferset) {
     bufferset = bufferset || {};
@@ -19,6 +21,8 @@ module.exports = function(bufferset) {
         outlineElement: new OutlineElementBuffer(bufferset.outlineElement),
         lineVertex: new LineVertexBuffer(bufferset.lineVertex),
         lineElement: new LineElementBuffer(bufferset.lineElement),
-        placementBoxVertex: new PlacementBoxVertexBuffer(bufferset.placementBoxVertex)
+        placementBoxVertex: new PlacementBoxVertexBuffer(bufferset.placementBoxVertex),
+        glyphFade: new GlyphFadeBuffer(bufferset.glyphFade),
+        iconFade: new IconFadeBuffer(bufferset.iconFade)
     };
 };

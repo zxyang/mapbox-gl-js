@@ -2,6 +2,7 @@ attribute vec2 a_pos;
 attribute vec2 a_offset;
 attribute vec4 a_data1;
 attribute vec4 a_data2;
+attribute vec4 a_fadedata;
 
 
 // matrix is for the vertex position, exmatrix is for rotating and projecting
@@ -15,6 +16,7 @@ uniform float u_fadedist;
 uniform float u_minfadezoom;
 uniform float u_maxfadezoom;
 uniform float u_fadezoom;
+uniform float u_time;
 
 uniform vec2 u_texsize;
 
@@ -28,6 +30,10 @@ void main() {
     vec2 a_zoom = a_data2.st;
     float a_minzoom = a_zoom[0];
     float a_maxzoom = a_zoom[1];
+
+    a_labelminzoom = a_fadedata.x;
+    float a_fadeintime = a_fadedata.y;
+    float a_opacity = a_fadedata.w;
 
     float rev = 0.0;
 
@@ -51,12 +57,15 @@ void main() {
     } else {
         v_alpha = 1.0 - alpha;
     }
+
     if (u_maxfadezoom < a_labelminzoom) {
         v_alpha = 0.0;
     }
     if (u_minfadezoom >= a_labelminzoom) {
         v_alpha = 1.0;
     }
+
+    v_alpha = mix(a_opacity / 255.0, v_alpha, clamp((a_fadeintime + u_time) / 150.0, 0.0, 1.0));
 
     // if label has been faded out, clip it
     z += step(v_alpha, 0.0);

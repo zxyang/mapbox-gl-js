@@ -214,11 +214,14 @@ WorkerTile.prototype.parse = function(data, layers, actor, callback) {
             var result = tile.redoPlacement(tile.angle).result;
             buffers.glyphVertex = result.buffers.glyphVertex;
             buffers.iconVertex = result.buffers.iconVertex;
+            buffers.glyphFade = result.buffers.glyphFade;
+            buffers.iconFade = result.buffers.iconFade;
             buffers.placementBoxVertex = result.buffers.placementBoxVertex;
         }
 
         var transferables = [],
-            elementGroups = {};
+            elementGroups = {},
+            symbolFadeBuffers = {};
 
         for (k in buffers) {
             transferables.push(buffers[k].array);
@@ -226,11 +229,21 @@ WorkerTile.prototype.parse = function(data, layers, actor, callback) {
 
         for (k in buckets) {
             elementGroups[k] = buckets[k].elementGroups;
+
+            if (buckets[k].type === 'symbol') {
+                var fadeBuffers = buckets[k].symbolFadeBuffers;
+                if (fadeBuffers) {
+                    symbolFadeBuffers[k] = fadeBuffers;
+                    transferables.push(fadeBuffers.icon);
+                    transferables.push(fadeBuffers.text);
+                }
+            }
         }
 
         callback(null, {
             elementGroups: elementGroups,
-            buffers: buffers
+            buffers: buffers,
+            symbolFadeBuffers: symbolFadeBuffers
         }, transferables);
     }
 };
@@ -246,6 +259,7 @@ WorkerTile.prototype.redoPlacement = function(angle) {
     var buffers = new BufferSet();
     var transferables = [];
     var elementGroups = {};
+    var symbolFadeBuffers = {};
 
     //console.time('redo placement');
 
@@ -259,6 +273,10 @@ WorkerTile.prototype.redoPlacement = function(angle) {
         if (bucket.type === 'symbol') {
             bucket.placeFeatures(buffers);
             elementGroups[bucket.id] = bucket.elementGroups;
+            var fadeBuffers = bucket.symbolFadeBuffers;
+            symbolFadeBuffers[bucket.id] = fadeBuffers;
+            transferables.push(fadeBuffers.icon);
+            transferables.push(fadeBuffers.text);
         }
     }
 
@@ -272,7 +290,8 @@ WorkerTile.prototype.redoPlacement = function(angle) {
     return {
         result: {
             elementGroups: elementGroups,
-            buffers: buffers
+            buffers: buffers,
+            symbolFadeBuffers: symbolFadeBuffers
         },
         transferables: transferables
     };

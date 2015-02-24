@@ -50,7 +50,7 @@ function drawSymbol(painter, layer, posMatrix, tile, elementGroups, prefix, sdf)
     mat4.scale(exMatrix, exMatrix, [ fontScale, fontScale, 1 ]);
 
     var text = prefix === 'text';
-    var shader, buffer, texsize;
+    var shader, buffer, fadebuffer, texsize;
 
     if (!text && !painter.style.sprite.loaded())
         return;
@@ -66,11 +66,13 @@ function drawSymbol(painter, layer, posMatrix, tile, elementGroups, prefix, sdf)
     if (text) {
         painter.glyphAtlas.updateTexture(gl);
         buffer = tile.buffers.glyphVertex;
+        fadebuffer = tile.buffers.glyphFade;
         texsize = [painter.glyphAtlas.width / 4, painter.glyphAtlas.height / 4];
     } else {
         painter.spriteAtlas.bind(gl, alignedWithMap || painter.options.rotating ||
             painter.options.zooming || fontScale !== 1 || sdf);
         buffer = tile.buffers.iconVertex;
+        fadebuffer = tile.buffers.iconFade;
         texsize = [painter.spriteAtlas.width / 4, painter.spriteAtlas.height / 4];
     }
 
@@ -79,6 +81,7 @@ function drawSymbol(painter, layer, posMatrix, tile, elementGroups, prefix, sdf)
     gl.uniform2fv(shader.u_texsize, texsize);
 
     buffer.bind(gl, shader);
+    fadebuffer.bind(gl, shader);
 
     // Convert the -pi..pi to an int8 range.
     var angle = Math.round(painter.transform.angle / Math.PI * 128);
@@ -96,6 +99,7 @@ function drawSymbol(painter, layer, posMatrix, tile, elementGroups, prefix, sdf)
     gl.uniform1f(shader.u_minfadezoom, Math.floor(f.minfadezoom * 10));
     gl.uniform1f(shader.u_maxfadezoom, Math.floor(f.maxfadezoom * 10));
     gl.uniform1f(shader.u_fadezoom, (painter.transform.zoom + f.bump) * 10);
+    gl.uniform1f(shader.u_time, Date.now() - fadebuffer.referenceTime);
 
     var begin = elementGroups.groups[0].vertexStartIndex,
         len = elementGroups.groups[0].vertexLength;

@@ -7,6 +7,7 @@ var vec2 = glmatrix.vec2;
 var TileCoord = require('./tile_coord');
 var util = require('../util/util');
 var BufferSet = require('../data/buffer/buffer_set');
+var fadePlacementLayer = require('../placement/fade_placement_layer');
 
 module.exports = Tile;
 
@@ -81,6 +82,7 @@ Tile.prototype = {
 
         this.buffers = new BufferSet(data.buffers);
         this.elementGroups = data.elementGroups;
+        this.symbolFadeBuffers = data.symbolFadeBuffers;
     },
 
     reloadSymbolData: function(data, painter) {
@@ -90,18 +92,32 @@ Tile.prototype = {
             return;
         }
 
+        var buffers = new BufferSet(data.buffers);
+
+        fadePlacementLayer(this.buffers, buffers, this.symbolFadeBuffers, data.symbolFadeBuffers, painter.transform);
+
         this.buffers.glyphVertex.destroy(painter.gl);
         this.buffers.iconVertex.destroy(painter.gl);
+        this.buffers.glyphFade.destroy(painter.gl);
+        this.buffers.iconFade.destroy(painter.gl);
         this.buffers.placementBoxVertex.destroy(painter.gl);
 
-        var buffers = new BufferSet(data.buffers);
         this.buffers.glyphVertex = buffers.glyphVertex;
         this.buffers.iconVertex = buffers.iconVertex;
+        this.buffers.glyphFade = buffers.glyphFade;
+        this.buffers.iconFade = buffers.iconFade;
         this.buffers.placementBoxVertex = buffers.placementBoxVertex;
 
-        for (var id in data.elementGroups) {
+        console.time('fade');
+        var id;
+        for (id in data.elementGroups) {
             this.elementGroups[id] = data.elementGroups[id];
         }
+
+        for (id in data.symbolFadeBuffers) {
+            this.symbolFadeBuffers[id] = data.symbolFadeBuffers[id];
+        }
+        console.timeEnd('fade');
     },
 
     unloadVectorData: function(painter) {

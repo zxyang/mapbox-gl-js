@@ -2,6 +2,7 @@ attribute vec2 a_pos;
 attribute vec2 a_offset;
 attribute vec4 a_data1;
 attribute vec4 a_data2;
+attribute vec4 a_fadedata;
 
 
 // matrix is for the vertex position, exmatrix is for rotating and projecting
@@ -16,6 +17,7 @@ uniform float u_minfadezoom;
 uniform float u_maxfadezoom;
 uniform float u_fadezoom;
 uniform float u_opacity;
+uniform float u_time;
 
 uniform vec2 u_texsize;
 
@@ -32,6 +34,8 @@ void main() {
 
     float a_fadedist = 10.0;
     float rev = 0.0;
+
+    a_labelminzoom = a_fadedata.x;
 
     // u_angle is angle of the map, -128..128 representing 0..2PI
     // a_angle is angle of the label, 0..256 representing 0..2PI, where 0 is horizontal text

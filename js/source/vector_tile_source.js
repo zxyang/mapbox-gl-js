@@ -16,7 +16,7 @@ function VectorTileSource(options) {
 
     Source._loadTileJSON.call(this, options);
 
-    this.updateAngle = util.throttle(this.updateAngle, 100, this);
+    this.updateAngle = util.throttle(this.updateAngle, 300, this);
 }
 
 VectorTileSource.prototype = util.inherit(Evented, {

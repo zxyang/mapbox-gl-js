@@ -45,7 +45,7 @@ Buffer.prototype = {
             gl.bufferData(type, this.array.slice(0, this.pos), gl.STATIC_DRAW);
 
             // dump array buffer once it's bound to gl
-            this.array = null;
+            if (!this.retain) this.array = null;
         } else {
             gl.bindBuffer(type, this.buffer);
         }
