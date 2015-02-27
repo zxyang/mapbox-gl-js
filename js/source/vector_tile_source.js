@@ -52,7 +52,11 @@ VectorTileSource.prototype = util.inherit(Evented, {
         }
     },
 
-    render: Source._renderTiles,
+    render: function() {
+        this._mergeTilePlacements();
+        Source._renderTiles.apply(this, arguments);
+    },
+
     featuresAt: Source._vectorFeaturesAt,
 
     _loadTile: function(tile) {
@@ -117,6 +121,66 @@ VectorTileSource.prototype = util.inherit(Evented, {
         function done(_, data) {
             tile.reloadSymbolData(data, source.map.painter);
             source.fire('tile.load', {tile: tile});
+        }
+    },
+
+    _mergeTilePlacements: function() {
+        if (!this._pyramid) return;
+        return;
+
+        var ids = this._pyramid.renderedIDs().reverse();
+        if (!ids.length) return;
+
+        var tileTreeNodes = {};
+        var tileRootNodes = [];
+        var minZ = TileCoord.fromID(ids[0]).z;
+
+        for (var i = 0; i < ids.length; i++) {
+            var tile = this._pyramid.getTile(ids[i]);
+
+            var parentID = ids[i];
+            var parentNode;
+            do {
+                parentID = TileCoord.parent(parentID, this.maxzoom);
+                parentNode = tileTreeNodes[parentID];
+            } while (TileCoord.fromID(parentID).z >= minZ && !parentNode);
+
+            var tileNode = {
+                tile: tile,
+                children: []
+            };
+
+            if (parentNode) {
+                parentNode.children.push(tileNode);
+            } else {
+                tileRootNodes.push(tileNode);
+            }
+
+            tileTreeNodes[ids[i]] = tileNode;
+        }
+
+        for (var k = 0; k < tileRootNodes.length; k++) {
+            this._mergeTilePlacement(tileRootNodes[k].tile, tileRootNodes[k].children);
+        }
+
+        for (var j = 0; j < ids.length; j++) {
+            // fade j
+        }
+    },
+
+    _mergeTilePlacement: function(tile, children) {
+        var childCoversParent = true;
+
+        // which direction?
+        // what scale/translation and tolerance?
+        for (var c = 0; c < children.length; c++) {
+            var child = children[c];
+            var blocker = childCoversParent ? child.tile : tile;
+            var blockee = childCoversParent ? tile : child.tile;
+
+            // merge placement
+
+            this._mergeTilePlacement(child.tile, child.children);
         }
     }
 });

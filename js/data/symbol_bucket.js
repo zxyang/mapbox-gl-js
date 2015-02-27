@@ -10,6 +10,7 @@ var Shaping = require('../symbol/shaping');
 var resolveText = require('../symbol/resolve_text');
 var resolveIcons = require('../symbol/resolve_icons');
 var mergeLines = require('../symbol/mergelines');
+var stringHash = require('string-hash');
 
 var PlacementFeature = require('../placement/placement_feature');
 var PlacementLayer = require('../placement/placement_layer');
@@ -90,14 +91,19 @@ SymbolBucket.prototype.addFeatures = function() {
         if (!geometries[k]) continue;
 
         var shaping = false;
+        var id = 0;
         if (textFeatures[k]) {
             shaping = Shaping.shape(textFeatures[k], fontstack, this.stacks, maxWidth,
                     lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset);
+
+            id = stringHash(textFeatures[k]);
         }
 
         var image = false;
         if (this.icons && layoutProperties['icon-image']) {
-            image = this.icons[resolveTokens(features[k].properties, layoutProperties['icon-image'])];
+            var imageName = resolveTokens(features[k].properties, layoutProperties['icon-image']);
+            image = this.icons[imageName];
+            id = id | stringHash(imageName);
 
             if (image) {
                 if (typeof this.sdfIcons === 'undefined') {
@@ -109,7 +115,7 @@ SymbolBucket.prototype.addFeatures = function() {
         }
 
         if (!shaping && !image) continue;
-        this.addFeature(geometries[k], this.stacks, shaping, image);
+        this.addFeature(geometries[k], this.stacks, shaping, image, id);
     }
 
     this.placeFeatures(this.buffers);
@@ -162,7 +168,7 @@ function byScale(a, b) {
     return a.scale - b.scale;
 }
 
-SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
+SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image, id) {
     var layoutProperties = this.layoutProperties;
     var placement = this.placement;
 
@@ -232,7 +238,7 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
                 var right = shaping.right * textBoxScale;
                 var left = shaping.left * textBoxScale;
 
-                textPlacementFeature = new PlacementFeature(line, anchor, left, right, top, bottom, layoutProperties['text-rotation-alignment'] !== 'viewport');
+                textPlacementFeature = new PlacementFeature(line, anchor, left, right, top, bottom, layoutProperties['text-rotation-alignment'] !== 'viewport', id);
                 textPlacementFeature.glyph = Placement.getGlyphs(anchor, origin, shaping, faces, textBoxScale, horizontalText, line, layoutProperties);
                 pair[0] = textPlacementFeature;
             }
@@ -240,7 +246,7 @@ SymbolBucket.prototype.addFeature = function(lines, faces, shaping, image) {
             if (image) {
                 var icon = Placement.getIcon(anchor, image, iconBoxScale, line, layoutProperties);
                 var box = icon.boxes[0].box;
-                iconPlacementFeature = new PlacementFeature(line, anchor, box.x1, box.x2, box.y1, box.y2, layoutProperties['symbol-placement'] === 'line');
+                iconPlacementFeature = new PlacementFeature(line, anchor, box.x1, box.x2, box.y1, box.y2, layoutProperties['symbol-placement'] === 'line', id);
                 iconPlacementFeature.icon = icon;
                 pair[1] = iconPlacementFeature;
             }

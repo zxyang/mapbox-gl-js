@@ -6,7 +6,11 @@ module.exports = PlacementFeature;
 
 function PlacementFeature(geometry, anchor, left, right, top, bottom, alignWithLine, id) {
 
-    this.id = id || Math.round(anchor.x + 1000 * anchor.y);
+    this.id = id;
+
+    // TODO remove?
+    this.id = (this.id + Math.pow(2, 31)) % Math.pow(2, 32) - Math.pow(2, 31);
+
     this.anchor = anchor;
 
     if (alignWithLine) {

@@ -7,7 +7,7 @@ var vec2 = glmatrix.vec2;
 var TileCoord = require('./tile_coord');
 var util = require('../util/util');
 var BufferSet = require('../data/buffer/buffer_set');
-var fadePlacementLayer = require('../placement/fade_placement_layer');
+var combinePlacementLayers = require('../placement/fade_placement_layer');
 
 module.exports = Tile;
 
@@ -94,7 +94,9 @@ Tile.prototype = {
 
         var buffers = new BufferSet(data.buffers);
 
-        fadePlacementLayer(this.buffers, buffers, this.symbolFadeBuffers, data.symbolFadeBuffers, painter.transform);
+
+        combinePlacementLayers.merge(this.symbolFadeBuffers, data.symbolFadeBuffers, this.buffers, painter.transform, this.id, this.id);
+        combinePlacementLayers.fade(this.symbolFadeBuffers, data.symbolFadeBuffers, this.buffers, buffers);
 
         this.buffers.glyphVertex.destroy(painter.gl);
         this.buffers.iconVertex.destroy(painter.gl);

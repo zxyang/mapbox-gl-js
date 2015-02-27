@@ -32,8 +32,9 @@ void main() {
     float a_maxzoom = a_zoom[1];
 
     a_labelminzoom = a_fadedata.x;
-    float a_fadeintime = a_fadedata.y;
-    float a_opacity = a_fadedata.w;
+    float a_from_opacity = a_fadedata.y;
+    float a_to_opacity = a_fadedata.z;
+    float a_since_fade_start = a_fadedata.w;
 
     float rev = 0.0;
 
@@ -65,7 +66,7 @@ void main() {
         v_alpha = 1.0;
     }
 
-    v_alpha = mix(a_opacity / 255.0, v_alpha, clamp((a_fadeintime + u_time) / 150.0, 0.0, 1.0));
+    v_alpha *= mix(a_from_opacity, a_to_opacity, clamp((a_since_fade_start + u_time) / 250.0, 0.0, 1.0)) / 255.0;
 
     // if label has been faded out, clip it
     z += step(v_alpha, 0.0);
