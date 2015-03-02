@@ -17,6 +17,8 @@ function testProp(props) {
     }
 }
 
+function preventDefault(e) { e.preventDefault(); }
+
 var selectProp = testProp(['userSelect', 'MozUserSelect', 'WebkitUserSelect', 'msUserSelect']),
     userSelect;
 exports.disableDrag = function () {
@@ -34,4 +36,16 @@ exports.enableDrag = function () {
 var transformProp = testProp(['transform', 'WebkitTransform']);
 exports.setTransform = function(el, value) {
     el.style[transformProp] = value;
+};
+
+exports.enableTextSelection = function() {
+    if ('onselectstart' in document) {
+        window.addEventListener('selectstart', preventDefault);
+    }
+};
+
+exports.disableTextSelection = function() {
+    if ('onselectstart' in document) {
+        window.removeEventListener('selectstart', preventDefault);
+    }
 };

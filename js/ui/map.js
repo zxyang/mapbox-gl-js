@@ -185,8 +185,32 @@ util.extend(Map.prototype, {
     project: function(latlng) {
         return this.transform.locationPoint(LatLng.convert(latlng));
     },
+
     unproject: function(point) {
         return this.transform.pointLocation(Point.convert(point));
+    },
+
+    getSize: function() {
+        return new Point(
+            this._container.clientWidth,
+            this._container.clientHeight
+        );
+    },
+
+    getPixelOrigin: function(center, zoom) {
+        var viewHalf = this.getSize().div(2);
+        return this.project(center, zoom).sub(viewHalf).add(new Point(0, 0)).round();
+    },
+
+    layerPointToLatLng: function(point) {
+        var projectedPoint = new Point(point.x, point.y)
+            .add(this.getPixelOrigin(this.getCenter(), this.getZoom()));
+        return this.unproject(projectedPoint);
+    },
+
+    containerPointToLatLng: function(point) {
+        var layerPoint = new Point(point.x, point.y).sub(new Point(0, 0));
+        return this.layerPointToLatLng(layerPoint);
     },
 
     featuresAt: function(point, params, callback) {

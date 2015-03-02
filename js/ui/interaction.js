@@ -3,6 +3,7 @@
 var Evented = require('../util/evented');
 var browser = require('../util/browser');
 var Point = require('point-geometry');
+var DOM = require('../util/browser/dom');
 
 module.exports = Interaction;
 
@@ -12,6 +13,7 @@ function Interaction(el) {
 
     var rotating = false,
         panned = false,
+        boxzoom = false,
         firstPos = null,
         pos = null,
         inertia = null,
@@ -84,6 +86,11 @@ function Interaction(el) {
     }
 
     function keydown(ev) {
+        if (boxzoom && ev.keyCode === 27) {
+            interaction.fire('boxzoomcancel');
+            boxzoom = false;
+        }
+
         interaction.fire('keydown', ev);
     }
 
@@ -105,21 +112,35 @@ function Interaction(el) {
     function onmousedown(ev) {
         firstPos = pos = mousePos(ev);
         interaction.fire('down');
+        if (ev.shiftKey || ((ev.which === 1) && (ev.button === 1))) {
+          boxzoom = true;
+          DOM.enableTextSelection();
+        }
     }
 
-    function onmouseup() {
+    function onmouseup(ev) {
         panned = pos && firstPos && (pos.x !== firstPos.x || pos.y !== firstPos.y);
 
         rotating = false;
         pos = null;
 
-        if (inertia && inertia.length >= 2 && now > Date.now() - 100) {
+        if (boxzoom) {
+            interaction.fire('boxzoomend', {
+                start: firstPos,
+                current: mousePos(ev)
+            });
+            boxzoom = false;
+            DOM.disableTextSelection();
+
+        } else if (inertia && inertia.length >= 2 && now > Date.now() - 100) {
             var last = inertia[inertia.length - 1],
                 first = inertia[0],
                 velocity = last[1].sub(first[1]).div(last[0] - first[0]);
             interaction.fire('panend', {inertia: velocity});
 
-        } else interaction.fire('panend');
+        } else {
+          interaction.fire('panend');
+        }
 
         inertia = null;
         now = null;
@@ -128,7 +149,13 @@ function Interaction(el) {
     function onmousemove(ev) {
         var point = mousePos(ev);
 
-        if (rotating) {
+        if (boxzoom) {
+            interaction.fire('boxzoomstart', {
+                start: firstPos,
+                current: point
+            });
+
+        } else if (rotating) {
             rotate(point);
 
         } else if (pos) {

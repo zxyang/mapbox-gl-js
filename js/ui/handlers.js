@@ -3,6 +3,9 @@
 var Interaction = require('./interaction');
 var Point = require('point-geometry');
 var util = require('../util/util');
+var DOM = require('../util/browser/dom');
+var Bounds = require('../geometry/bounds');
+var LatLngBounds = require('../geo/lat_lng_bounds');
 
 module.exports = Handlers;
 
@@ -10,8 +13,18 @@ function Handlers(map) {
 
     var rotateEnd;
 
+    var box;
+
     var inertiaLinearity = 0.2,
         inertiaEasing = util.bezier(0, 0, inertiaLinearity, 1);
+
+    function boxzoomFinish() {
+        if (box) {
+            box.parentNode.removeChild(box);
+            map.getContainer().classList.remove('mapboxgl-crosshair');
+            box = false;
+        }
+    }
 
     this.interaction = new Interaction(map.getCanvas())
         .on('click', function(e) {
@@ -20,7 +33,7 @@ function Handlers(map) {
         .on('hover', function(e) {
             map.fire('hover', e);
         })
-        .on('down', function () {
+        .on('down', function(e) {
             map.fire('movestart');
         })
         .on('resize', function() {
@@ -149,5 +162,32 @@ function Handlers(map) {
                 map.rotating = false;
                 map._rerender();
             }, 200);
-        });
+        })
+        .on('boxzoomstart', function(e) {
+            if (!box) {
+                box = DOM.create('div', 'mapboxgl-boxzoom', map.getContainer());
+                map.getContainer().classList.add('mapboxgl-crosshair');
+                map.fire('boxzoomstart');
+            }
+
+            var bounds = new Bounds(e.current, e.start),
+                size = bounds.getSize();
+
+            DOM.setTransform(box, 'translate(' + bounds.min.x + 'px,' + bounds.min.y + 'px)');
+            box.style.width = size.x + 'px';
+            box.style.height = size.y + 'px';
+        })
+        .on('boxzoomend', function(e) {
+            boxzoomFinish();
+
+            var bounds = new LatLngBounds(
+                map.containerPointToLatLng(e.start),
+                map.containerPointToLatLng(e.current)
+            );
+
+            map.fitBounds(bounds).fire('boxzoomend', {
+                boxZoomBounds: bounds
+            });
+        })
+        .on('boxzoomcancel', boxzoomFinish);
 }

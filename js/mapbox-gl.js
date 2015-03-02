@@ -19,6 +19,7 @@ if (typeof window === 'undefined') {
 
     mapboxgl.LatLng = require('./geo/lat_lng');
     mapboxgl.LatLngBounds = require('./geo/lat_lng_bounds');
+    mapboxgl.Bounds = require('./geometry/bounds');
     mapboxgl.Point = require('point-geometry');
 
     mapboxgl.Evented = require('./util/evented');
